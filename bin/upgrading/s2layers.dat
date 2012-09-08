@@ -100,6 +100,9 @@ nouveauoleanders/themes  theme+                      nouveauoleanders/layout
 paletteable/layout       layout(core2base/layout)    core2
 paletteable/themes       theme+                      paletteable/layout
 
+patsy/layout             layout(core2base/layout)    core2
+patsy/themes             theme+                      patsy/layout
+
 practicality/layout      layout(core2base/layout)    core2
 practicality/themes      theme+                      practicality/layout
 
@@ -123,4 +126,3 @@ wideopen/themes          theme+                      wideopen/layout
 
 zesty/layout             layout                      core2
 zesty/themes             theme+                      zesty/layout
-

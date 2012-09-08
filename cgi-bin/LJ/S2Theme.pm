@@ -62,6 +62,7 @@ sub default_themes {
         negatives => 'negatives/black',
         nouveauoleanders => 'nouveauoleanders/sienna',
         paletteable => 'paletteable/descending',
+        patsy => 'patsy/retro',
         practicality => 'practicality/warmth',
         refriedtablet => 'refriedtablet/refriedclassic',
         skittlishdreams => 'skittlishdreams/orange',
