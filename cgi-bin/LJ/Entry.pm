@@ -507,9 +507,9 @@ sub _load_comments {
         $row->{nodetype} = "L";
         $row->{nodeid}   = $nodeid;
         $comment->absorb_row(%$row);
-        
+
         push @comment_list, $comment;
-    }        
+    }
     $self->set_comment_list( @comment_list );
 
     return $self;

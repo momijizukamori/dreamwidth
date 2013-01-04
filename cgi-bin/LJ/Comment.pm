@@ -1457,7 +1457,7 @@ sub _format_mail_both {
                 $pichtml = "<img src=\"$LJ::USERPIC_ROOT/$pic->{picid}/$pic->{userid}\" align='absmiddle' "
                     . "width='$pic->{width}' height='$pic->{height}' "
                     . "hspace='1' vspace='2' alt='"
-                    . $pic->alttext( $pic_kw ) 
+                    . $pic->alttext( $pic_kw )
                     . "' /> ";
             }
         }
@@ -1638,8 +1638,10 @@ sub userpic {
     # return the picture from keyword, if defined
     # else return poster's default userpic
     my $kw = $_[0]->userpic_kw;
-    my $pic = LJ::Userpic->new_from_keyword( $up, $kw ) || $up->userpic;
-
+    my $pic;
+    $pic = LJ::Userpic->new_from_keyword( $up, $kw ) || $up->userpic;
+    if ($kw eq 'pic#0') { $pic = -1}
+    print STDERR $pic; #FIXME
     return wantarray ? ( $pic, $kw ) : $pic;
 }
 
@@ -1656,7 +1658,8 @@ sub userpic_kw {
 
     if ( $up->userpic_have_mapid ) {
         my $mapid = $self->prop('picture_mapid');
-
+        print STDERR $mapid; #FIXME
+        return 'pic#0' if $mapid < 0;
         return $up->get_keyword_from_mapid( $mapid ) if $mapid;
     } else {
         return $self->prop('picture_keyword');

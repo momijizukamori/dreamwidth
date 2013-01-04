@@ -938,7 +938,7 @@ sub create_qr_div {
             @pics = sort { lc($a) cmp lc($b) } @pics;
             $qrhtml .= LJ::html_select({'name' => 'prop_picture_keyword',
                                         'selected' => $userpic, 'id' => 'prop_picture_keyword' },
-                                       ("", BML::ml('/talkpost.bml.opt.defpic'), map { ($_, $_) } @pics));
+                                       ("", BML::ml('/talkpost.bml.opt.defpic'), -1, "(no icon)", map { ($_, $_) } @pics));
 
             # userpic browse button
             $qrhtml .= qq {<input type="button" id="lj_userpicselect" value="Browse" />} if $remote->can_use_userpic_select;
