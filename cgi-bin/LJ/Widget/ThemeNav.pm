@@ -53,23 +53,13 @@ sub render_body {
     $theme_chooser_id = $theme_chooser->{id} unless $theme_chooser_id;
     $$headextra .= $theme_chooser->wrapped_js( page_js_obj => "Customize" ) if $headextra;
 
-    # sort cats by specificed order key, then alphabetical order
+    # split categories - with an array, we'll sort when we print.
     my %cats = LJ::Customize->get_cats($u);
-    my @cats_sorted =
-        sort { $cats{$a}->{order} <=> $cats{$b}->{order} }
-        sort { lc $cats{$a}->{text} cmp lc $cats{$b}->{text} } keys %cats;
-
-    # pull the main cats out of the full list
-    my @main_cats_sorted;
-    for (my $i = 0; $i < @cats_sorted; $i++) {
-        my $c = $cats_sorted[$i];
-
-        if (defined $cats{$c}->{main}) {
-            my $el = splice(@cats_sorted, $i, 1);
-            push @main_cats_sorted, $el;
-            $i--; # we just removed an element from @cats_sorted
+    my %cats_sorted;
+        for (%cats) {
+            my @cat_split = split(":", $cat);
+            push @{ $cats_sorted{shift(@cat_split)} }, @cat_split;
         }
-    }
 
     my $ret;
     $ret .= "<h2 class='widget-header'>" . $class->ml('widget.themenav.title') . "</h2>";
@@ -88,34 +78,23 @@ sub render_body {
     $ret .= "<div class='theme-nav-inner-wrapper section-nav-inner-wrapper'>";
     $ret .= "<div class='theme-selector-nav section-nav'>";
 
-    $ret .= "<ul class='theme-nav nostyle'>";
-    $ret .= $class->print_cat_list(
-        user => $u,
-        selected_cat => $cat,
-        viewing_all => $viewing_all,
-        cat_list => \@main_cats_sorted,
-        getextra => $getextra,
-        showarg => $showarg,
-    );
-    $ret .= "</ul>";
-
-    if (scalar @cats_sorted) {
+    if (scalar %cats_sorted) {
         $ret .= "<div class='theme-nav-separator section-nav-separator'><hr class='hr' /></div>";
-    
+
         $ret .= "<ul class='theme-nav nostyle section-nav'>";
         $ret .= $class->print_cat_list(
             user => $u,
             selected_cat => $cat,
             viewing_all => $viewing_all,
-            cat_list => \@cats_sorted,
+            cat_list => \%cats_sorted,
             getextra => $getextra,
             showarg => $showarg,
         );
         $ret .= "</ul>";
-    
+
         $ret .= "<div class='theme-nav-separator section-nav-separator'><hr class='hr' /></div>";
     }
-    
+
     $ret .= "<ul class='theme-nav-small nostyle section-nav'>";
     $ret .= "<li class='first'><a href='$LJ::SITEROOT/customize/advanced/'>" . $class->ml('widget.themenav.developer') . "</a>";
     my $upsell = LJ::Hooks::run_hook( 'customize_advanced_area_upsell', $u ) || '';
@@ -145,52 +124,37 @@ sub print_cat_list {
     my %opts = @_;
 
     my $u = $opts{user};
-    my $cat_list = $opts{cat_list};
+    my %cat_list = $opts{cat_list};
 
     my %cats = LJ::Customize->get_cats($u);
-
-    my @special_themes = LJ::S2Theme->load_by_cat("special");
-    my $special_themes_exist = 0;
-    foreach my $special_theme (@special_themes) {
-        my $layout_is_active = LJ::Hooks::run_hook("layer_is_active", $special_theme->layout_uniq);
-        my $theme_is_active = LJ::Hooks::run_hook("layer_is_active", $special_theme->uniq);
-
-        if ($layout_is_active && $theme_is_active) {
-            $special_themes_exist = 1;
-            last;
-        }
-    }
 
     my @custom_themes = LJ::S2Theme->load_by_user($opts{user});
 
     my $ret;
+    my $cat;
 
-    for (my $i = 0; $i < @$cat_list; $i++) {
-        my $c = $cat_list->[$i];
+    for $cat ( sort { {$cat_list{$b}} <=> {$cat_list{$a}} } keys %cat_list ) {
+        next if $cat eq "custom" && !@custom_themes;
 
-        next if $c eq "special" && !$special_themes_exist;
-        next if $c eq "custom" && !@custom_themes;
+        my $div_class = "";
+        $div_class .= " on" if
+            ($cat eq $opts{selected_cat}) ||
+            ($cat eq "featured" && !$opts{selected_cat} && !$opts{viewing_all}) ||
+            ($cat eq "all" && $opts{viewing_all});
+        $div_class =~ s/^\s//; # remove the first space
+        $div_class = " class='$div_class'" if $div_class;
 
-        my $li_class = "";
-        $li_class .= " on" if
-            ($c eq $opts{selected_cat}) ||
-            ($c eq "featured" && !$opts{selected_cat} && !$opts{viewing_all}) ||
-            ($c eq "all" && $opts{viewing_all});
-        $li_class .= " first" if $i == 0;
-        $li_class .= " last" if $i == @$cat_list - 1;
-        $li_class =~ s/^\s//; # remove the first space
-        $li_class = " class='$li_class'" if $li_class;
-
-        my $arg = "";
-        $arg = "cat=$c" unless $c eq "featured";
-        if ($arg || $opts{showarg}) {
-            my $allargs = $arg;
-            $allargs .= "&" if $allargs && $opts{showarg};
-            $allargs .= $opts{showarg};
-            $arg = $opts{getextra} ? "&$allargs" : "?$allargs";
-        }
-
-        $ret .= "<li$li_class><a href='$LJ::SITEROOT/customize/$opts{getextra}$arg' class='theme-nav-cat'>$cats{$c}->{text}</a></li>";
+        $ret .= "<div$div_class>$cat";
+        my $tag;
+            if ($cat_list{$cat}){
+                for $tag (sort @{ $cat_list{$cat} }) {
+                    $ret .= "<div class='tag $tag'>".$class->html_check(
+                    name => "$cat"."_"."$tag",
+                    id => "$cat"."_"."$tag",
+                    );
+                    $ret .= " <label for='$cat"."_"."$tag'>$tag</label></div>";
+                }
+            }
     }
 
     return $ret;

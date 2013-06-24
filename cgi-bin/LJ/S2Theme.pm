@@ -171,63 +171,6 @@ sub load {
     die "Must pass one or more of the following options to theme loader: themeid, layoutid, default_of, uniq, cat, designer, user, custom_layoutid, all";
 }
 
-#load all themes that match more than one opt (OR matching)
-sub load_or {
-    my $class = shift;
-    my %opts = @_;
-    my @themelists;
-    my $opt;
-
-    #get lists for all opts and add them together
-    for $opt (%opts) {
-        push (@themelists, load($class $opt))
-    }
-    return #FIXME: hell if know
-}
-
-#load themes that match two or more opts (AND matching)
-sub load_and {
-    my $class = shift;
-    my %opts = @_;
-    my @themelists;
-    my $opt;
-    my @themes;
-
-    #get lists for all opts and add them together
-    for $opt (%opts) {
-        push (@themelists, load($class $opt))
-    }
-
-    #count how many instances each theme appears
-    for my $theme (@themelist) {
-        $themecount{$theme}++;
-    }
-
-    #push only themes that appear as many times as there are opts (ie, are on all opt lists)
-    for (keys(%themecount) {
-        if (%themecount{$_} == $opts) {
-            push (@themes, $_)
-        }
-    }
-    return #FIXME: hell if know
-}
-
-#load all except ones matching a given opt (NOT matching)
-sub load_not {
-    my $class = shift;
-    my %opts = @_;
-    my @themelists;
-    my $opt;
-
-    #get lists for all opts and add them together
-    for $opt (%opts) {
-        push (@themelists, load($class $opt))
-    }
-
-    #FIXME: subtract this list from a preloaded list OR all themes
-    return #FIXME: hell if know
-}
-
 sub load_by_themeid {
     my $class = shift;
     my $themeid = shift;
