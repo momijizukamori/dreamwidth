@@ -566,7 +566,7 @@ sub get_propgroups {
 
     my %prop;  # name hashref, deleted when added to a category
     my @propnames;
-    
+
     my @grouped_properties = S2::get_properties( $lyr_core->{s2lid} );
     @grouped_properties = grep { $_->{grouped} && $_->{grouped} == 1 } @grouped_properties;
 
@@ -649,27 +649,27 @@ sub get_cats {
     my $u = shift;
 
     my @categories = (
-        all => {
+        "all" => {
             text => LJ::Lang::ml('customize.cats.all'),
             main => 1,
             order => 2,
         },
-        featured => {
+        "featured" => {
             text => LJ::Lang::ml('customize.cats.featured'),
             main => 1,
             order => 1,
         },
-        special => {
+        "special" => {
             text => LJ::Lang::ml('customize.cats.special'),
             main => 1,
             order => 4,
         },
-        custom => {
+        "custom" => {
             text => LJ::Lang::ml('customize.cats.custom'),
             main => 1,
             order => 5,
         },
-        base => {
+        "base" => {
             text => LJ::Lang::ml( 'customize.cats.base' ),
             main => 1,
             order => 3,
@@ -715,7 +715,7 @@ sub get_propgroup_subheaders {
 }
 
 sub get_propgroup_subheaders_order {
-    return ( 
+    return (
     qw (
         page
         module

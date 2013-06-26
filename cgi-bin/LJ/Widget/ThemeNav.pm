@@ -56,9 +56,13 @@ sub render_body {
     # split categories - with an array, we'll sort when we print.
     my %cats = LJ::Customize->get_cats($u);
     my %cats_sorted;
-        for (%cats) {
-            my @cat_split = split(":", $cat);
-            push @{ $cats_sorted{shift(@cat_split)} }, @cat_split;
+    my $cat;
+        for $cat( keys %cats ) {
+            my @cat_split = split(" ", $cat);
+            my $key = shift(@cat_split);
+
+            my @value = $cats_sorted{$key} ? ( @{$cats_sorted{$key}}, @cat_split ) : @cat_split;
+            $cats_sorted{$key} = \@value;
         }
 
     my $ret;
@@ -124,7 +128,7 @@ sub print_cat_list {
     my %opts = @_;
 
     my $u = $opts{user};
-    my %cat_list = $opts{cat_list};
+    my %cat_list = %{$opts{cat_list}};
 
     my %cats = LJ::Customize->get_cats($u);
 
@@ -133,18 +137,18 @@ sub print_cat_list {
     my $ret;
     my $cat;
 
-    for $cat ( sort { {$cat_list{$b}} <=> {$cat_list{$a}} } keys %cat_list ) {
+    for $cat ( sort (keys(%cat_list) )) {
         next if $cat eq "custom" && !@custom_themes;
 
         my $div_class = "";
-        $div_class .= " on" if
-            ($cat eq $opts{selected_cat}) ||
-            ($cat eq "featured" && !$opts{selected_cat} && !$opts{viewing_all}) ||
-            ($cat eq "all" && $opts{viewing_all});
+#        $div_class .= " on" if
+#            ($cat eq $opts{selected_cat}) ||
+#            ($cat eq "featured" && !$opts{selected_cat} && !$opts{viewing_all}) ||
+#            ($cat eq "all" && $opts{viewing_all});
         $div_class =~ s/^\s//; # remove the first space
         $div_class = " class='$div_class'" if $div_class;
 
-        $ret .= "<div$div_class>$cat";
+        $ret .= "<div$div_class><div class='$cat category-title'><h3>$cat</h3></div>";
         my $tag;
             if ($cat_list{$cat}){
                 for $tag (sort @{ $cat_list{$cat} }) {
@@ -155,6 +159,13 @@ sub print_cat_list {
                     $ret .= " <label for='$cat"."_"."$tag'>$tag</label></div>";
                 }
             }
+        $ret .= "Match items by:"; #FIXME: english-strip
+        $ret .= $class->html_select(
+        { name => "match",
+        id => "match_type",
+        selected => "or", },
+        qw (and and or or),
+    )
     }
 
     return $ret;
