@@ -85,6 +85,7 @@ sub render_body {
     if (scalar %cats_sorted) {
         $ret .= "<div class='theme-nav-separator section-nav-separator'><hr class='hr' /></div>";
 
+        $ret .= $class->start_form( id => "advanced_search_form" );
         $ret .= "<ul class='theme-nav nostyle section-nav'>";
         $ret .= $class->print_cat_list(
             user => $u,
@@ -95,6 +96,8 @@ sub render_body {
             showarg => $showarg,
         );
         $ret .= "</ul>";
+        $ret .= " " . $class->html_submit( "advanced_search_submit" => "Submit", { id => "search_submit_btn" });
+        $ret .= $class->end_form;
 
         $ret .= "<div class='theme-nav-separator section-nav-separator'><hr class='hr' /></div>";
     }
@@ -153,7 +156,7 @@ sub print_cat_list {
             if ($cat_list{$cat}){
                 for $tag (sort @{ $cat_list{$cat} }) {
                     $ret .= "<div class='tag $tag'>".$class->html_check(
-                    name => "$cat"."_"."$tag",
+                    name => "cat_"."$cat"."_"."$tag",
                     id => "$cat"."_"."$tag",
                     );
                     $ret .= " <label for='$cat"."_"."$tag'>$tag</label></div>";
@@ -161,7 +164,7 @@ sub print_cat_list {
             }
         $ret .= "Match items by:"; #FIXME: english-strip
         $ret .= $class->html_select(
-        { name => "match",
+        { name => "match_" . $cat,
         id => "match_type",
         selected => "or", },
         qw (and and or or),
@@ -213,7 +216,29 @@ sub handle_post {
 
         $post->{search} = LJ::eurl($post->{search});
         $url .= "?search=$post->{search}$authas$show";
+    } elsif ($post->{advanced_search_submit}) {
+            #build our query here aww yeah
+        my %query;
+
+        my $postkey;
+        foreach $postkey( keys %{$post}) {
+            if ($postkey =~ /^match_(.+)$/) {
+
+                $query{$1} -> {match_type} = $post->{$postkey};
+            }
+
+            if ($postkey =~ /^cat_(.+)$/) {
+                my @split = split('_',$1);
+                my $top_cat = shift(@split);
+
+                my @value = $query{$top_cat} -> {opts} ? ( @{$query{$top_cat} -> {opts}}, @split ) : @split;
+                $query{$top_cat} -> {opts} = \@value;
+            }
+        }
+
+    print STDERR LJ::D(%query);
     }
+
 
     return BML::redirect($url);
 }

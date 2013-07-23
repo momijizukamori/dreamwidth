@@ -10,17 +10,17 @@ if (cached taglist exists) {
 }
 
 #Query form:
-#@query = (
+#%query = (
 #    %category = ( $match => and, @opts => ( opt1 opt2 opt3)),
 #    %category2 = ($match => or, @opts => (opt2 opt3)),
 #)
 
 for my $query_item (keys %query) {
-    if ($query{$query_item{match}} eq "and") {
-        my @layoutlist = match_and(PASS IT SHIT);
+    if ($query{$query_item} -> {match_type} eq "and") {
+        my @layoutlist = match_and($query_item, $query{$query_item}->{opts});
         push (@layoutslist, \@layoutlist);
-    } elsif ($query{$query_item{match}} eq "or")
-        my @layoutlist = match_or(PASS IT SHIT);
+    } elsif ($query{$query_item} -> {match_type} eq "or")
+        my @layoutlist = match_or($query_item, $query{$query_item}->{opts});
         push (@layoutslist, \@layoutlist);
     }
 
