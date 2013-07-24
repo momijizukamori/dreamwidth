@@ -237,6 +237,13 @@ sub handle_post {
         }
 
     print STDERR LJ::D(%query);
+
+    # dispatch this item...
+    my $gclient = LJ::gearman_client()
+        or die "Unable to get gearman client.\n";
+    my $query_return = $gclient->dispatch_background( 'style_search', %query );
+    die "Unable to insert Gearman job.\n"
+        unless $query_return;
     }
 
 

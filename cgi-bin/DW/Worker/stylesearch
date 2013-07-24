@@ -1,33 +1,51 @@
-my %taglist;
-my %query = %PASSED_IN_QUERY;
-my @layoutslist;
-
-if (cached taglist exists) {
-    %taglist = %{cachedtaglistref}
-} else {
-    %taglist = get_tag_hash();
-    #CACHE THIS????
+use strict;
+use lib "$ENV{LJHOME}/extlib/lib/perl5";
+use lib "$ENV{LJHOME}/cgi-bin";
+BEGIN {
+    require "ljlib.pl";
 }
 
-#Query form:
-#%query = (
-#    %category = ( $match => and, @opts => ( opt1 opt2 opt3)),
-#    %category2 = ($match => or, @opts => (opt2 opt3)),
-#)
+use Gearman::Worker;
+use LJ::Worker::Gearman;
+use Storable;
 
-for my $query_item (keys %query) {
-    if ($query{$query_item} -> {match_type} eq "and") {
-        my @layoutlist = match_and($query_item, $query{$query_item}->{opts});
-        push (@layoutslist, \@layoutlist);
-    } elsif ($query{$query_item} -> {match_type} eq "or")
-        my @layoutlist = match_or($query_item, $query{$query_item}->{opts});
-        push (@layoutslist, \@layoutlist);
+gearman_decl( 'style_search' => \&style_search );
+gearman_work();
+
+
+sub style_search (
+    my %taglist;
+    my %query = %PASSED_IN_QUERY;
+    my @layoutslist;
+
+    if (cached taglist exists) {
+        %taglist = %{cachedtaglistref}
+    } else {
+        %taglist = get_tag_hash();
+        #CACHE THIS????
     }
 
-# Run AND match between categories
-my @queried_layouts = match_and(PASS IT SHIT);
+    #Query form:
+    #%query = (
+    #    %category = ( $match => and, @opts => ( opt1 opt2 opt3)),
+    #    %category2 = ($match => or, @opts => (opt2 opt3)),
+    #)
 
-return @queried_layouts;
+    for my $query_item (keys %query) {
+        if ($query{$query_item} -> {match_type} eq "and") {
+            my @layoutlist = match_and($query_item, $query{$query_item}->{opts});
+            push (@layoutslist, \@layoutlist);
+        } elsif ($query{$query_item} -> {match_type} eq "or")
+            my @layoutlist = match_or($query_item, $query{$query_item}->{opts});
+            push (@layoutslist, \@layoutlist);
+        }
+
+    # Run AND match between categories
+    my @queried_layouts = match_and(PASS IT SHIT);
+
+    return @queried_layouts;
+)
+
 
 #Build tag hash structure that looks like this:
 #%TAG_HASH = (
