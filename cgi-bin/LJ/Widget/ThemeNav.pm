@@ -17,6 +17,7 @@ use strict;
 use base qw(LJ::Widget);
 use Carp qw(croak);
 use LJ::Customize;
+use Storable qw/ nfreeze /;
 
 sub ajax { 1 }
 sub can_fake_ajax_post { 1 }
@@ -239,13 +240,39 @@ sub handle_post {
     print STDERR LJ::D(%query);
 
     # dispatch this item...
-    my $gclient = LJ::gearman_client()
+    my $gc = LJ::gearman_client()
         or die "Unable to get gearman client.\n";
-    my $query_return = $gclient->dispatch_background( 'style_search', %query );
-    die "Unable to insert Gearman job.\n"
-        unless $query_return;
-    }
 
+    warn '1';
+    my @query_return;
+    warn '2';
+
+    my $arg = nfreeze( \%query );
+    my $task = Gearman::Task->new(
+        'style_search', \$arg,
+        {
+            uniq => '-',
+            on_complete => sub {
+                my $res = $_[0] or return undef;
+                @query_return = @{ Storable::thaw( $$res ) };
+            },
+        }
+    );
+
+    warn '3';
+    warn $task.'4';
+
+    # setup the task set for gearman
+    my $ts = $gc->new_task_set();
+    $ts->add_task( $task );
+    $ts->wait( timeout => 10 );
+
+
+    warn @query_return;
+
+    warn '5';
+    return @query_return;
+    }
 
     return BML::redirect($url);
 }

@@ -1,0 +1,147 @@
+#!/usr/bin/perl
+#
+# style-search
+#
+# This Gearman worker is responsible for taking a style search query and
+# and performing the search
+#
+# Authors:
+#      Momiji <momijizukamori@gmail.com>
+#
+# Copyright (c) 2009-2013 by Dreamwidth Studios, LLC.
+#
+# This program is free software; you may redistribute it and/or modify it under
+# the same terms as Perl itself.  For a copy of the license, please reference
+# 'perldoc perlartistic' or 'perldoc perlgpl'.
+#
+
+
+use strict;
+use lib "$ENV{LJHOME}/extlib/lib/perl5";
+use lib "$ENV{LJHOME}/cgi-bin";
+BEGIN {
+    require "ljlib.pl";
+}
+
+use Gearman::Worker;
+use LJ::Worker::Gearman;
+use Storable;
+
+gearman_decl( 'style_search' => \&style_search );
+gearman_work();
+
+
+
+#Build tag hash structure that looks like this:
+#%TAG_HASH = (
+#    %tagid => [ style, style, style... ],
+#    %tagid2 => [ style, style, style... ],
+#)
+
+
+sub _get_tag_hash {
+
+    my %taglist;
+    my $dbr = LJ::S2::get_s2_reader();
+
+    my $sth = $dbr->prepare("SELECT s.s2lid, k.keyword ".
+                            "FROM s2categories s, sitekeywords k ".
+                            "WHERE s.kwid=k.kwid");
+    $sth->execute();
+    die $sth->errstr if $sth->err;
+    while (my ($s2lid, $keyword) = $sth->fetchrow_array) {
+
+            my @s2list = $taglist{$keyword} ? ( @{$taglist{$keyword}}, $s2lid ) : $s2lid;
+            $taglist{$keyword} = \@s2list;
+    }
+
+    return %taglist;
+}
+
+
+sub _match_or {
+
+    my $category = shift;
+    my @opts_list = @{ shift() };
+    my %taglist = %{ shift() };
+    my @s2lid_list;
+
+    while (@opts_list) {
+        my $full_cat = $category . " " . shift(@opts_list);
+
+        push (@s2lid_list, $taglist{$full_cat});
+    }
+
+    return @s2lid_list;
+}
+
+sub _match_and {
+
+    my $category = shift;
+    my @opts_list = @{ shift() };
+    my %taglist = %{ shift() };
+    my @s2lid_list;
+    my @updated_s2lid_list;
+
+    while (@opts_list) {
+        my $full_cat = $category . " " . shift(@opts_list);
+        my @cat_list = $taglist{$full_cat};
+
+
+        if (@updated_s2lid_list) {
+            my %updated_s2lid_list = map{$_ =>1} @updated_s2lid_list;
+            @updated_s2lid_list = grep( $updated_s2lid_list{$_}, @cat_list)
+        } else {
+            @updated_s2lid_list = \@cat_list;
+        }
+
+    }
+
+    return @updated_s2lid_list;
+}
+
+sub style_search {
+    my %taglist;
+    my $job = shift;
+    my %query = Storable::thaw( $job->arg );
+    my %layoutslist;
+
+    print STDERR LJ::D(%query);
+
+    if (0) { #fix this about
+ #       %taglist = %{cachedtaglistref}
+    } else {
+        %taglist = _get_tag_hash();
+        #CACHE THIS????
+    }
+
+    print STDERR LJ::D(\%taglist);
+
+    #Query form:
+    #%query = (
+    #    %category = ( $match => and, @opts => ( opt1 opt2 opt3)),
+    #    %category2 = ($match => or, @opts => (opt2 opt3)),
+    #)
+
+    for my $query_item (keys %query) {
+        if ($query{$query_item} -> {match_type} eq "and") {
+            %layoutslist = ( $query_item => _match_and($query_item, \%{$query{$query_item}->{opts}}, \%taglist));
+        } elsif ($query{$query_item} -> {match_type} eq "or") {
+            %layoutslist = ( $query_item => _match_or($query_item, \%{$query{$query_item}->{opts}}, \%taglist));
+        }
+
+    }
+    my @queried_layouts;
+
+    for my $category (keys %layoutslist) {
+        if (@queried_layouts) {
+            my %queried_layouts = map{$_ =>1} @queried_layouts;
+            @queried_layouts= grep( $queried_layouts{$_}, $layoutslist{$category})
+        } else {
+            @queried_layouts = $layoutslist{$category};
+        }
+
+    }
+    my $results = Storable::nfreeze( \@queried_layouts );
+    return \$results;
+}
