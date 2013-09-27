@@ -103,10 +103,12 @@ sub _match_and {
 sub style_search {
     my %taglist;
     my $job = shift;
-    my %query = Storable::thaw( $job->arg );
+    print STDERR LJ::D(\$job);
+    my %query = Storable::thaw( $job->argref );
     my %layoutslist;
 
-    print STDERR LJ::D(%query);
+    print STDERR "This is our query:";
+    print STDERR LJ::D(\%query);
 
     if (0) { #fix this about
  #       %taglist = %{cachedtaglistref}
@@ -115,6 +117,7 @@ sub style_search {
         #CACHE THIS????
     }
 
+    print STDERR "This is our taglist:";
     print STDERR LJ::D(\%taglist);
 
     #Query form:
@@ -125,10 +128,14 @@ sub style_search {
 
     for my $query_item (keys %query) {
         if ($query{$query_item} -> {match_type} eq "and") {
+        warn "Running an and!\n";
             %layoutslist = ( $query_item => _match_and($query_item, \%{$query{$query_item}->{opts}}, \%taglist));
         } elsif ($query{$query_item} -> {match_type} eq "or") {
+        warn "Running an or!\n";
             %layoutslist = ( $query_item => _match_or($query_item, \%{$query{$query_item}->{opts}}, \%taglist));
-        }
+        } else {
+        warn "No match running!";
+        };
 
     }
     my @queried_layouts;
