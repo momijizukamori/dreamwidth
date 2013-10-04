@@ -41,7 +41,7 @@ sub render_body {
     my $search = defined $opts{search} ? $opts{search} : "";
     my $page = $opts{page} || 1;
     my $show = $opts{show} || 12;
-
+    my @adv_search = defined $opts{adv_search} ? @{$opts{adv_search}} : "";
     my $showarg = $show != 12 ? "&show=$opts{show}" : "";
 
     my $viewing_featured = !$cat && !$layoutid && !$designer;
@@ -52,9 +52,9 @@ sub render_body {
 
     my @getargs;
     my @themes;
-    if ($cat eq "all") {
-        push @getargs, "cat=all";
-        @themes = LJ::S2Theme->load_all($u);
+    if (@adv_search) {
+        warn "loading query results.";
+        @themes = LJ::S2Theme->load_by_multi_themeids(\@adv_search);
     } elsif ($cat eq "custom") {
         push @getargs, "cat=custom";
         @themes = LJ::S2Theme->load_by_user($u);
@@ -73,8 +73,8 @@ sub render_body {
     } elsif ($search) {
         push @getargs, "search=" . LJ::eurl($search);
         @themes = LJ::S2Theme->load_by_search($search, $u);
-    } else { # category is "featured"
-        @themes = LJ::S2Theme->load_by_cat("featured");
+    } else { # category is "all"
+        @themes = LJ::S2Theme->load_all($u);
     }
 
     if ($show != 12) {
@@ -108,6 +108,9 @@ sub render_body {
             $i--; # we just removed an element from @themes
         }
     }
+
+#    warn "processed themes:";
+#    warn LJ::D(\@themes);
 
     my $current_theme = LJ::Customize->get_current_theme($u);
     my $index_of_first_theme = $show ne "all" ? $show * ($page - 1) : 0;
@@ -154,9 +157,9 @@ sub render_body {
         $theme_types{upgrade} = 1 if !$theme->available_to($u);
         $theme_types{special} = 1 if LJ::Hooks::run_hook("layer_is_special", $theme->uniq);
 
-        
+
         my ($theme_class, $theme_options, $theme_icons) = ("", "", "");
-        
+
         $theme_icons .= "<div class='theme-icons'>" if $theme_types{upgrade} || $theme_types{special};
         if ($theme_types{current}) {
             my $no_layer_edit = LJ::Hooks::run_hook("no_theme_or_layer_edit", $u);
@@ -338,21 +341,6 @@ sub handle_post {
 
     my $themeid = $post->{apply_themeid}+0;
     my $layoutid = $post->{apply_layoutid}+0;
-
-    # we need to load sponsor's themes for sponsored users
-    my $substitue_user = LJ::Hooks::run_hook("substitute_s2_layers_user", $u);
-    my $effective_u = defined $substitue_user ? $substitue_user : $u;
-    my $theme;
-    if ($themeid) {
-        $theme = LJ::S2Theme->load_by_themeid($themeid, $effective_u);
-    } elsif ($layoutid) {
-        $theme = LJ::S2Theme->load_custom_layoutid($layoutid, $effective_u);
-    } else {
-        die "No theme id or layout id specified.";
-    }
-
-    LJ::Customize->apply_theme($u, $theme);
-    LJ::Hooks::run_hooks('apply_theme', $u);
 
     return;
 }

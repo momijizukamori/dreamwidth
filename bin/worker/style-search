@@ -69,9 +69,13 @@ sub _match_or {
     while (@opts_list) {
         my $full_cat = $category . " " . shift(@opts_list);
 
-        push (@s2lid_list, $taglist{$full_cat});
+        push (@s2lid_list, @{$taglist{$full_cat}});
+#        warn "this is our current list:";
+#        warn LJ::D(\@s2lid_list);
     }
 
+
+    #FIXME: We need to remove duplicates!
     return @s2lid_list;
 }
 
@@ -82,17 +86,33 @@ sub _match_and {
     my %taglist = %{ shift() };
     my @s2lid_list;
     my @updated_s2lid_list;
+    my %updated_s2lid_hash;
 
     while (@opts_list) {
         my $full_cat = $category . " " . shift(@opts_list);
-        my @cat_list = $taglist{$full_cat};
+        my @cat_list = @{$taglist{$full_cat}};
 
+#        warn $full_cat;
+#        warn LJ::D(\@cat_list);
+#        warn "this is our current list";
+#            warn LJ::D(\@updated_s2lid_list);
 
         if (@updated_s2lid_list) {
-            my %updated_s2lid_list = map{$_ =>1} @updated_s2lid_list;
-            @updated_s2lid_list = grep( $updated_s2lid_list{$_}, @cat_list)
+#            warn "our list before running the match:";
+#            warn LJ::D(\@updated_s2lid_list);
+#            warn "our currrent category list:";
+#            warn LJ::D(\@cat_list);
+
+            my %updated_s2lid_hash = map {$_ => 1} @updated_s2lid_list;
+#            warn "our hash map:";
+#            warn LJ::D(\%updated_s2lid_hash);
+            @updated_s2lid_list = grep $updated_s2lid_hash{$_}, @cat_list;
+
+#            warn "our list after running the match:";
+#            warn LJ::D(\@updated_s2lid_list);
+
         } else {
-            @updated_s2lid_list = \@cat_list;
+            @updated_s2lid_list = @cat_list;
         }
 
     }
@@ -103,12 +123,13 @@ sub _match_and {
 sub style_search {
     my %taglist;
     my $job = shift;
-    print STDERR LJ::D(\$job);
-    my %query = Storable::thaw( $job->argref );
-    my %layoutslist;
+    my $queryref = Storable::thaw( $job->arg );
+    my %query = %$queryref;
+    my @layoutslist;
+    my %layoutshash;
 
     print STDERR "This is our query:";
-    print STDERR LJ::D(\%query);
+    print STDERR LJ::D(%query);
 
     if (0) { #fix this about
  #       %taglist = %{cachedtaglistref}
@@ -117,8 +138,8 @@ sub style_search {
         #CACHE THIS????
     }
 
-    print STDERR "This is our taglist:";
-    print STDERR LJ::D(\%taglist);
+#    print STDERR "This is our taglist:";
+#    print STDERR LJ::D(\%taglist);
 
     #Query form:
     #%query = (
@@ -128,27 +149,61 @@ sub style_search {
 
     for my $query_item (keys %query) {
         if ($query{$query_item} -> {match_type} eq "and") {
-        warn "Running an and!\n";
-            %layoutslist = ( $query_item => _match_and($query_item, \%{$query{$query_item}->{opts}}, \%taglist));
+#            warn "Running an and!\n";
+            @layoutslist =  _match_and($query_item, \@{$query{$query_item}->{opts}}, \%taglist);
+#           warn "this is our current layout list after 'and' match:";
+#            warn LJ::D(\@layoutslist);
+
+            #dump empty (no-result) lists
+            if(@layoutslist) { $layoutshash{$query_item} = [@layoutslist]; }
+#            warn "this is our current layout hash after 'and' match:";
+#            warn LJ::D(\%layoutshash);
         } elsif ($query{$query_item} -> {match_type} eq "or") {
-        warn "Running an or!\n";
-            %layoutslist = ( $query_item => _match_or($query_item, \%{$query{$query_item}->{opts}}, \%taglist));
+#            warn "Running an or!\n";
+            @layoutslist =  _match_or($query_item, \@{$query{$query_item}->{opts}}, \%taglist);
+#            warn "this is our current layout list after 'or' match:";
+#            warn LJ::D(\@layoutslist);
+
+            #dump empty (no-result) lists
+            if(@layoutslist) { $layoutshash{ $query_item } = [@layoutslist]; };
+#            warn "this is our current layout hash after 'or' match:";
+#            warn LJ::D(\%layoutshash);
         } else {
         warn "No match running!";
         };
 
     }
+
+            warn "this is our current layout hash after all matches:";
+            warn LJ::D(\%layoutshash);
+
     my @queried_layouts;
 
-    for my $category (keys %layoutslist) {
+    #now we take all our seperate category lists and run 'and' matches between them
+    for my $category (keys %layoutshash) {
+
+#        warn "this is our current last list";
+#        warn LJ::D(\@queried_layouts);
         if (@queried_layouts) {
-            my %queried_layouts = map{$_ =>1} @queried_layouts;
-            @queried_layouts= grep( $queried_layouts{$_}, $layoutslist{$category})
+            my %queriedhash = map{$_ =>1} @queried_layouts;
+
+#        warn "this is our current hash map";
+#        warn LJ::D(\%queriedhash);
+
+#        warn "this is what we're matching against";
+#        warn LJ::D(\$layoutshash{$category});
+            @queried_layouts = grep $queriedhash{$_}, @{$layoutshash{$category}};
+
+#        warn "this is our current last list after match";
+#        warn LJ::D(\@queried_layouts);
         } else {
-            @queried_layouts = $layoutslist{$category};
+            @queried_layouts = @{$layoutshash{$category}};
         }
 
     }
+
+    warn "This is what we're returning:";
+    warn LJ::D(\@queried_layouts);
     my $results = Storable::nfreeze( \@queried_layouts );
     return \$results;
 }

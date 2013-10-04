@@ -66,6 +66,56 @@ sub render_body {
             $cats_sorted{$key} = \@value;
         }
 
+    my $post = LJ::Widget->post_fields_of_widget("ThemeNav");
+    my @query_return;
+
+
+    if ($post->{advanced_search_submit}) {
+                #build our query here aww yeah
+            my %query;
+
+            my $postkey;
+            foreach $postkey( keys %{$post}) {
+                if ($postkey =~ /^match_(.+)$/) {
+
+                    $query{$1} -> {match_type} = $post->{$postkey};
+                }
+
+                if ($postkey =~ /^cat_(.+)$/) {
+                    my @split = split('_',$1);
+                    my $top_cat = shift(@split);
+
+                    my @value = $query{$top_cat} -> {opts} ? ( @{$query{$top_cat} -> {opts}}, @split ) : (@split);
+                    $query{$top_cat} -> {opts} = \@value;
+                }
+            }
+
+        # dispatch this item...
+        my $gc = LJ::gearman_client()
+            or die "Unable to get gearman client.\n";
+
+        my $arg = nfreeze( \%query );
+        my $task = Gearman::Task->new(
+            'style_search', \$arg,
+            {
+                uniq => '-',
+                on_complete => sub {
+                    my $res = $_[0] or return undef;
+                    @query_return = @{ Storable::thaw( $$res ) };
+                },
+            }
+        );
+
+        # setup the task set for gearman
+        my $ts = $gc->new_task_set();
+        $ts->add_task( $task );
+        $ts->wait( timeout => 10 );
+
+
+        warn LJ::D(\@query_return);
+        warn 'query returned!';
+    }
+
     my $ret;
     $ret .= "<h2 class='widget-header'>" . $class->ml('widget.themenav.title') . "</h2>";
 
@@ -120,6 +170,7 @@ sub render_body {
         search => $search,
         page => $page,
         show => $show,
+        adv_search => \@query_return,
     );
     $ret .= "</div>";
     $ret .= "</div>";
@@ -180,101 +231,7 @@ sub handle_post {
     my $post = shift;
     my %opts = @_;
 
-    my $q_string = BML::get_query_string();
-    $q_string =~ s/&?page=\d+//g;
 
-    my $url = "$LJ::SITEROOT/customize/";
-    if ($post->{filter}) {
-        $q_string = "?$q_string" if $q_string;
-        my $q_sep = $q_string ? "&" : "?";
-        $url .= $q_string;
-
-    } elsif ($post->{page}) {
-        $q_string = "?$q_string" if $q_string;
-        my $q_sep = $q_string ? "&" : "?";
-
-        $post->{page} = LJ::eurl($post->{page});
-        if ($post->{page} != 1) {
-            $url .= "$q_string${q_sep}page=$post->{page}";
-        } else {
-            $url .= $q_string;
-        }
-    } elsif ($post->{show}) {
-        $q_string =~ s/&?show=\w+//g;
-        $q_string = "?$q_string" if $q_string;
-        my $q_sep = $q_string ? "&" : "?";
-
-        $post->{show} = LJ::eurl($post->{show});
-        if ($post->{show} != 12) {
-            $url .= "$q_string${q_sep}show=$post->{show}";
-        } else {
-            $url .= $q_string;
-        }
-    } elsif ($post->{search}) {
-        my $show = ($q_string =~ /&?show=(\w+)/) ? "&show=$1" : "";
-        my $authas = ($q_string =~ /&?authas=(\w+)/) ? "&authas=$1" : "";
-        $q_string = "";
-
-        $post->{search} = LJ::eurl($post->{search});
-        $url .= "?search=$post->{search}$authas$show";
-    } elsif ($post->{advanced_search_submit}) {
-            #build our query here aww yeah
-        my %query;
-
-        my $postkey;
-        foreach $postkey( keys %{$post}) {
-            if ($postkey =~ /^match_(.+)$/) {
-
-                $query{$1} -> {match_type} = $post->{$postkey};
-            }
-
-            if ($postkey =~ /^cat_(.+)$/) {
-                my @split = split('_',$1);
-                my $top_cat = shift(@split);
-
-                my @value = $query{$top_cat} -> {opts} ? ( @{$query{$top_cat} -> {opts}}, @split ) : @split;
-                $query{$top_cat} -> {opts} = \@value;
-            }
-        }
-
-    print STDERR LJ::D(%query);
-
-    # dispatch this item...
-    my $gc = LJ::gearman_client()
-        or die "Unable to get gearman client.\n";
-
-    warn '1';
-    my @query_return;
-    warn '2';
-
-    my $arg = nfreeze( \%query );
-    my $task = Gearman::Task->new(
-        'style_search', \$arg,
-        {
-            uniq => '-',
-            on_complete => sub {
-                my $res = $_[0] or return undef;
-                @query_return = @{ Storable::thaw( $$res ) };
-            },
-        }
-    );
-
-    warn '3';
-    warn $task.'4';
-
-    # setup the task set for gearman
-    my $ts = $gc->new_task_set();
-    $ts->add_task( $task );
-    $ts->wait( timeout => 10 );
-
-
-    warn @query_return;
-
-    warn '5';
-    return @query_return;
-    }
-
-    return BML::redirect($url);
 }
 
 sub js {

@@ -171,6 +171,22 @@ sub load {
     die "Must pass one or more of the following options to theme loader: themeid, layoutid, default_of, uniq, cat, designer, user, custom_layoutid, all";
 }
 
+sub load_by_multi_themeids {
+    my $class = shift;
+    my $themeids = shift;
+    my $u = shift;
+
+    my @themes;
+    my $pub = LJ::S2::get_public_layers();
+
+    foreach my $themeid (@$themeids) {
+        next unless $pub->{$themeid}->{type} eq "theme";
+        push @themes, $class->new( themeid => $themeid );
+    }
+
+    return @themes;
+}
+
 sub load_by_themeid {
     my $class = shift;
     my $themeid = shift;
