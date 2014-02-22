@@ -41,6 +41,7 @@ sub render_body {
     my $search = defined $opts{search} ? $opts{search} : "";
     my $page = $opts{page} || 1;
     my $show = $opts{show} || 12;
+    my $adv_search_flag = $opts{adv_search_flag};
     my @adv_search = defined $opts{adv_search} ? @{$opts{adv_search}} : "";
     my $showarg = $show != 12 ? "&show=$opts{show}" : "";
 
@@ -52,7 +53,7 @@ sub render_body {
 
     my @getargs;
     my @themes;
-    if (@adv_search) {
+    if ($adv_search_flag) {
         warn "loading query results.";
         @themes = LJ::S2Theme->load_by_multi_themeids(\@adv_search);
     } elsif ($cat eq "custom") {
@@ -130,6 +131,8 @@ sub render_body {
         $ret .= "<h3>$designer</h3>";
     } elsif ($search) {
         $ret .= "<h3>" . $class->ml('widget.themechooser.header.search', {'term' => LJ::ehtml($search)}) . "</h3>";
+    } elsif ($adv_search_flag) {
+        $ret .="<h3>Advanced Search Results</h3>"; #TODO: English-strip this
     } else { # category is "featured"
         $ret .= "<h3>$cats{featured}->{text}</h3>";
     }
@@ -329,6 +332,7 @@ sub print_paging {
     $ret .= "</div>";
 
     return $ret;
+
 }
 
 sub handle_post {

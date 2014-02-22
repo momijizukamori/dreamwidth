@@ -45,10 +45,15 @@ sub render_body {
     my $search = defined $opts{search} ? $opts{search} : "";
     my $page = defined $opts{page} ? $opts{page} : 1;
     my $show = defined $opts{show} ? $opts{show} : 12;
+    my $adv_search_flag = defined $opts{adv_search_flag} ? $opts{adv_search_flag} : "";
+    my @adv_search; # = defined $opts{adv_search} ? @{$opts{adv_search}} : "";
     my $showarg = $show != 12 ? "show=$opts{show}" : "";
 
+        warn LJ::D(\%opts);
+        warn 'current opts';
+
     # we want to have "All" selected if we're filtering by layout or designer, or if we're searching
-    my $viewing_all = $layoutid || $designer || $search;
+    my $viewing_all = $layoutid || $designer || $search || $adv_search_flag;
 
     my $theme_chooser = LJ::Widget::ThemeChooser->new( id => $theme_chooser_id );
     $theme_chooser_id = $theme_chooser->{id} unless $theme_chooser_id;
@@ -67,10 +72,11 @@ sub render_body {
         }
 
     my $post = LJ::Widget->post_fields_of_widget("ThemeNav");
-    my @query_return;
+   # my @query_return;
 
 
     if ($post->{advanced_search_submit}) {
+            $adv_search_flag = 1;
                 #build our query here aww yeah
             my %query;
 
@@ -101,7 +107,7 @@ sub render_body {
                 uniq => '-',
                 on_complete => sub {
                     my $res = $_[0] or return undef;
-                    @query_return = @{ Storable::thaw( $$res ) };
+                    @adv_search = @{ Storable::thaw( $$res ) };
                 },
             }
         );
@@ -112,8 +118,8 @@ sub render_body {
         $ts->wait( timeout => 10 );
 
 
-        warn LJ::D(\@query_return);
-        warn 'query returned!';
+        #warn LJ::D(\@query_return);
+        #warn 'query returned!';
     }
 
     my $ret;
@@ -163,6 +169,8 @@ sub render_body {
 
     $ret .= "<div class='theme-nav-content section-nav-content'>";
     $ret .= $class->html_hidden({ name => "theme_chooser_id", value => $theme_chooser_id, id => "theme_chooser_id" });
+
+    #my @adv_return = @query_return || @adv_search;
     $ret .= $theme_chooser->render(
         cat => $cat,
         layoutid => $layoutid,
@@ -170,7 +178,8 @@ sub render_body {
         search => $search,
         page => $page,
         show => $show,
-        adv_search => \@query_return,
+        adv_search => \@adv_search,
+        adv_search_flag => $adv_search_flag,
     );
     $ret .= "</div>";
     $ret .= "</div>";
@@ -305,6 +314,8 @@ sub js {
             if (key == "search") Customize.search = value;
             if (key == "page") Customize.page = value;
             if (key == "show") Customize.show = value;
+            if (key == "adv_search_flag") Customize.adv_search_flag = value;
+            if (key == "adv_search") Customize.adv_search = value;
 
             this.updateContent({
                 method: "GET",
@@ -314,7 +325,9 @@ sub js {
                 search: Customize.search,
                 page: Customize.page,
                 show: Customize.show,
-                theme_chooser_id: $('theme_chooser_id').value
+                theme_chooser_id: $('theme_chooser_id').value,
+                adv_search_flag: Customize.adv_search_flag,
+                adv_search: Customize.adv_search
             });
 
             Event.stop(evt);

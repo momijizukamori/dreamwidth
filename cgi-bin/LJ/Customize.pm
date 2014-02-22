@@ -649,31 +649,6 @@ sub get_cats {
     my $u = shift;
 
     my @categories = (
-        "all" => {
-            text => LJ::Lang::ml('customize.cats.all'),
-            main => 1,
-            order => 2,
-        },
-        "featured" => {
-            text => LJ::Lang::ml('customize.cats.featured'),
-            main => 1,
-            order => 1,
-        },
-        "special" => {
-            text => LJ::Lang::ml('customize.cats.special'),
-            main => 1,
-            order => 4,
-        },
-        "custom" => {
-            text => LJ::Lang::ml('customize.cats.custom'),
-            main => 1,
-            order => 5,
-        },
-        "base" => {
-            text => LJ::Lang::ml( 'customize.cats.base' ),
-            main => 1,
-            order => 3,
-        },
         map { $_ => {
             text => $_,
             order => 3,
