@@ -181,19 +181,20 @@ sub _dispatcher {
     my $handler     = $self->{path}{methods}->{$method}->{handler};
     my $method_self = $self->{path}{methods}->{$method};
 
+    if ($method eq 'delete') {
+        print "Hit a delete method";
+    }
+
     # check method-level parameters
     for my $param ( keys %{ $method_self->{params} } ) {
         my $valid = _validate_param( $param, $method_self->{params}{$param}, $r, undef, $args );
         return unless $valid;
     }
-
-    warn "passed method-level validation";
     # if we accept a request body, validate that too.
     if ( defined $method_self->{requestBody} ) {
         my $valid = _validate_body( $method_self->{requestBody}, $r, $args );
         return unless $valid;
     }
-    warn "passed request body validation";
     # some handlers need to know what version they are
     $method_self->{ver} = $self->{ver};
 
@@ -223,7 +224,6 @@ sub _validate_param {
     my $ploc = $config->{in};
     my $preq = $config->{required};
     my $pval = $config->{validator};
-    warn Dumper($config);
     my $p;
 
     if ( $ploc eq 'query' ) {
@@ -297,6 +297,8 @@ sub _validate_body {
             $upload_hash->add( $item->{name} => $item->{body} );
         }
         $p = $upload_hash;
+    } else {
+        print "content-type is $content_type";
     }
     else {
         warn "Unexpected content-type $content_type";
@@ -314,7 +316,7 @@ sub _validate_body {
 
     # non-required parameters may be undef without it being an error
     # but we shouldn't try to validate them if they're undef.
-    #return 1 unless ( defined $p && defined($config->{content}->{$content_type}{validator}));
+    return 1 unless ( defined $p && defined($config->{content}->{$content_type}{validator}));
 
     # run the schema validator
     my @errors = $config->{content}{$content_type}{validator}->validate($p);
@@ -326,10 +328,6 @@ sub _validate_body {
         return 0;
     }
     $arg_obj->{body} = $p;
-<<<<<<< a2c7b989a5fec342b7c8a6c5cc10aad7f2f5f7b6
-
-=======
->>>>>>> Partially-working API page + work to entries route
     return 1;
 }
 

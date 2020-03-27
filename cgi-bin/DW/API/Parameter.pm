@@ -20,6 +20,7 @@ package DW::API::Parameter;
 use strict;
 use warnings;
 use JSON;
+use Data::Dumper;
 
 use Carp qw(croak);
 
