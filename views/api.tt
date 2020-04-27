@@ -1,5 +1,6 @@
 [%- sections.title = "API" -%]
 [%- CALL dw.active_resource_group( "foundation" ) -%]
+		<script type="module" src="http://www.momiji.hack.dreamwidth.net/js/rapidoc-min.js"></script>
 [%- dw.need_res( { group => "foundation" },
             "js/vendor/rapidoc-min.js"
             "js/components/jquery.collapse.js"

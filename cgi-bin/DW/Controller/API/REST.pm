@@ -327,6 +327,7 @@ sub _validate_body {
         $r->status('400');
         return 0;
     }
+    warn Dumper($p);
     $arg_obj->{body} = $p;
     return 1;
 }
