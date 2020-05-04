@@ -181,10 +181,6 @@ sub _dispatcher {
     my $handler     = $self->{path}{methods}->{$method}->{handler};
     my $method_self = $self->{path}{methods}->{$method};
 
-    if ($method eq 'delete') {
-        print "Hit a delete method";
-    }
-
     # check method-level parameters
     for my $param ( keys %{ $method_self->{params} } ) {
         my $valid = _validate_param( $param, $method_self->{params}{$param}, $r, undef, $args );
@@ -327,7 +323,6 @@ sub _validate_body {
         $r->status('400');
         return 0;
     }
-    warn Dumper($p);
     $arg_obj->{body} = $p;
     return 1;
 }
@@ -448,6 +443,19 @@ sub api_404_handler {
     $r->status(404);
     $r->content_type('application/json; charset=utf-8');
     $r->print( to_json( { success => 0, error => "Not found." } ) );
+    return $r->OK;
+}
+
+DW::Routing->register_string('/internal/api/404', \&api_404_handler, app => 1);
+
+sub api_404_handler {
+    my ( $ok, $rv ) = controller(anonymous => 1);
+    return $rv unless $ok;
+    my $r             = $rv->{r};
+
+    $r->status(404);
+    $r->content_type('application/json; charset=utf-8');
+    $r->print(to_json( { success => 0, error => "Not found." }));
     return $r->OK;
 }
 

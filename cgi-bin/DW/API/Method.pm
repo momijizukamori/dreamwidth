@@ -202,6 +202,11 @@ sub TO_JSON {
 
     if (defined $self->{requestBody}) {
         $json->{requestBody} = $self->{requestBody};
+        if (defined $self->{requestBody}{required} && $self->{requestBody}{required}) {
+            $json->{requestBody}{required} = $JSON::true;
+        } else {
+            delete $json->{requestBody}{required};
+        }
     }
 
     my $responses = $self->{responses};
