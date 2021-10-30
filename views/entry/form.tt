@@ -119,6 +119,7 @@ postFormInitData.strings = {
         [%- formwidth == "narrow" ? "entry-partial-width" : "entry-full-width" -%]">
     <input type="hidden" id="nojs" value="1" name="nojs" />
 
+
     [%- dw.form_auth -%]
 
     <div class="current-entry row"><div class="columns"><!-- Start main column sub & entry -->
@@ -380,6 +381,6 @@ postFormInitData.strings = {
             </div>
         </div>
     </div>
-
+    <button type="button" id="image-upload">Image upload</button>
+    [% INCLUDE "components/image-upload.tt" %]
 </form>
-
