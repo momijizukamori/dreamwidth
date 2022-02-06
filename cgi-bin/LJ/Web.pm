@@ -18,11 +18,14 @@ use strict;
 
 use Carp;
 use POSIX;
+use Digest::MD5;
+use Digest::SHA1;
 
 use DW::Auth::Challenge;
 use DW::External::Site;
 use DW::Request;
 use DW::Formats;
+use LJ::Utils qw(rand_chars);
 use LJ::Global::Constants;
 use LJ::Event;
 use LJ::Subscription::Pending;
@@ -320,7 +323,6 @@ sub bad_input {
     $ret .= "<?badcontent?>\n<ul>\n";
     foreach my $ei (@errors) {
         my $err = LJ::errobj($ei) or next;
-        $err->log;
         $ret .= $err->as_bullets;
     }
     $ret .= "</ul>\n";
@@ -346,7 +348,6 @@ sub error_list {
 
     foreach my $ei (@errors) {
         my $err = LJ::errobj($ei) or next;
-        $err->log;
         $ret .= $err->as_bullets;
     }
     $ret .= " </ul> errorbar?>";
@@ -751,67 +752,9 @@ sub check_referer {
     return 1 if $LJ::DOMAIN     && $referer =~ m!^https?://\Q$LJ::DOMAIN\E$uri!;
     return 1 if $LJ::DOMAIN_WEB && $referer =~ m!^https?://\Q$LJ::DOMAIN_WEB\E$uri!;
     return 1
-        if $LJ::USER_VHOSTS && $referer =~ m!^https?://([A-Za-z0-9_\-]{1,25})\.\Q$LJ::DOMAIN\E$uri!;
+        if $referer =~ m!^https?://([A-Za-z0-9_\-]{1,25})\.\Q$LJ::DOMAIN\E$uri!;
     return 1 if $origuri =~ m!^https?://! && $origreferer eq $origuri;
     return undef;
-}
-
-# <LJFUNC>
-# name: LJ::icon_keyword_menu
-# class: web
-# des: Gets all userpics for a given user, separated by keyword. Use this when
-#      building a drop-down icons menu.
-# args: user
-# des-user: a user object.
-# returns: An array of hashrefs like:
-#          {value => ..., text => ..., data => { url => ..., description => ... }}
-#          which can be passed directly to an LJ::html_select(). Includes an
-#          item for each keyword (thus duplicating icons with multiple
-#          keywords), and an item for the default userpic. If no userpics or if
-#          user is undefined, returns an empty array.
-# </LJFUNC>
-sub icon_keyword_menu {
-    my ($user) = @_;
-
-    return () unless ($user);
-
-    my @icons = grep { !( $_->inactive || $_->expunged ) } LJ::Userpic->load_user_userpics($user);
-
-    return () unless (@icons);
-
-    # Get a sorted array of { keyword => "...", userpic => userpic_object } hashrefs:
-    @icons = LJ::Userpic->separate_keywords( \@icons );
-
-    # Sort out the default icon -- either it's a real one, or it's nothing
-    # and we should use a placeholder image in previews.
-    my $default_icon = $user->userpic;    # userpic object or nothing
-    my $default_icon_url =
-          $default_icon
-        ? $default_icon->url
-        : ( $LJ::IMGPREFIX . $LJ::Img::img{nouserpic_sitescheme}->{src} );
-
-    # Finally, return the expected format for an LJ::html_select,
-    # including an item for the default icon:
-    return (
-        {
-            value => "",
-            text  => LJ::Lang::ml('entryform.opt.defpic'),
-            data  => {
-                url         => $default_icon_url,
-                description => LJ::Lang::ml('entryform.opt.defpic'),
-            },
-        },
-        map {
-            {
-                value => $_->{keyword},
-                text  => $_->{keyword},
-                data  => {
-                    url         => $_->{userpic}->url,
-                    description => $_->{userpic}->description || $_->{keyword},
-                },
-            }
-        } @icons
-    );
 }
 
 # <LJFUNC>
@@ -933,9 +876,6 @@ sub create_qr_div {
         $hidden_form_elements .= LJ::html_hidden( "chrp1", "$chal-$res" );
     }
 
-    # For userpic selector
-    my @icons = icon_keyword_menu($remote);
-
     # hashref with "selected" and "items" keys
     my $editors = DW::Formats::select_items( preferred => $remote->prop('comment_editor'), );
 
@@ -962,16 +902,7 @@ sub create_qr_div {
 
             foundation_beta => !LJ::BetaFeatures->user_in_beta( $remote => "nos2foundation" ),
 
-            remote => {
-                ljuser                 => $remote->ljuser_display,
-                user                   => $remote->user,
-                icons_url              => $remote->allpics_base,
-                icons                  => \@icons,
-                can_use_userpic_select => $remote->can_use_userpic_select && ( scalar(@icons) > 0 ),
-                iconbrowser_keywordorder => $remote->iconbrowser_keywordorder ? "true" : "false",
-                iconbrowser_metatext     => $remote->iconbrowser_metatext ? "true" : "false",
-                iconbrowser_smallicons   => $remote->iconbrowser_smallicons ? "true" : "false",
-            },
+            remote => $remote,
 
             journal => {
                 is_iplogging    => $u->opt_logcommentips eq 'A',
@@ -3373,6 +3304,9 @@ sub control_strip {
         #     .selected => ""
         'viewoptions' => [],
         'search_html' => LJ::Widget::Search->render,
+
+        # url of the rendered page, for the login/logout form to redirect back to
+        'returnto' => $euri,
     };
 
     # Shortcuts for the two nested array refs that get repeatedly dereferenced later
