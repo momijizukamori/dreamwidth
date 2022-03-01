@@ -40,7 +40,7 @@ sub work {
         $msg =~ s/\r?\n/ /gs;
         return $class->temp_fail( $data, 'lj_entries', $job, 'Failure running job: %s', $msg );
     }
-    
+
 }
 
 sub try_work {

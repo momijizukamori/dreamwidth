@@ -415,7 +415,7 @@ sub copytext {
     my ( $self, $args ) = @_;
 
     $args->{class} .= " copy-text";
-    $args->{id}    ||= $self->generate_id($args);
+    $args->{id} ||= $self->generate_id($args);
 
     my $ret = "";
     $ret .= $self->_process_value_and_label($args);

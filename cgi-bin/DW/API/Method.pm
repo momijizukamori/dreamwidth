@@ -200,11 +200,12 @@ sub TO_JSON {
         $json->{parameters} = [ values %{ $self->{params} } ];
     }
 
-    if (defined $self->{requestBody}) {
+    if ( defined $self->{requestBody} ) {
         $json->{requestBody} = $self->{requestBody};
-        if (defined $self->{requestBody}{required} && $self->{requestBody}{required}) {
+        if ( defined $self->{requestBody}{required} && $self->{requestBody}{required} ) {
             $json->{requestBody}{required} = $JSON::true;
-        } else {
+        }
+        else {
             delete $json->{requestBody}{required};
         }
     }

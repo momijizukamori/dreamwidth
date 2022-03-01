@@ -186,11 +186,13 @@ sub _dispatcher {
         my $valid = _validate_param( $param, $method_self->{params}{$param}, $r, undef, $args );
         return unless $valid;
     }
+
     # if we accept a request body, validate that too.
     if ( defined $method_self->{requestBody} ) {
         my $valid = _validate_body( $method_self->{requestBody}, $r, $args );
         return unless $valid;
     }
+
     # some handlers need to know what version they are
     $method_self->{ver} = $self->{ver};
 
@@ -293,7 +295,8 @@ sub _validate_body {
             $upload_hash->add( $item->{name} => $item->{body} );
         }
         $p = $upload_hash;
-    } else {
+    }
+    else {
         warn "Unexpected content-type $content_type";
     }
     else {
@@ -324,6 +327,10 @@ sub _validate_body {
         return 0;
     }
     $arg_obj->{body} = $p;
+<<<<<<< 43a05bdf6be585a21e47f31ded44d24c386851ce
+=======
+
+>>>>>>> tidying and updates
     return 1;
 }
 
@@ -446,16 +453,16 @@ sub api_404_handler {
     return $r->OK;
 }
 
-DW::Routing->register_string('/internal/api/404', \&api_404_handler, app => 1);
+DW::Routing->register_string( '/internal/api/404', \&api_404_handler, app => 1 );
 
 sub api_404_handler {
-    my ( $ok, $rv ) = controller(anonymous => 1);
+    my ( $ok, $rv ) = controller( anonymous => 1 );
     return $rv unless $ok;
-    my $r             = $rv->{r};
+    my $r = $rv->{r};
 
     $r->status(404);
     $r->content_type('application/json; charset=utf-8');
-    $r->print(to_json( { success => 0, error => "Not found." }));
+    $r->print( to_json( { success => 0, error => "Not found." } ) );
     return $r->OK;
 }
 
