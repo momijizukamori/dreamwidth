@@ -47,7 +47,7 @@ sub define_parameter {
     }
     elsif ( defined $args->{content} ) {
         $parameter->{content} = $args->{content};
-        $parameter->{in} = 'requestBody';
+        $parameter->{in}      = 'requestBody';
     }
 
     bless $parameter, $class;
@@ -58,15 +58,13 @@ sub define_parameter {
 
 sub define_body {
     my ( $class, $args, $content ) = @_;
-    my $parameter = {
-        in       => 'requestBody',
-    };
+    my $parameter = { in => 'requestBody', };
 
     if ( defined $args->{schema} ) {
         $parameter->{schema} = $args->{schema};
     }
     bless $parameter, $class;
-    if ($content eq 'application/json') {
+    if ( $content eq 'application/json' ) {
         $parameter->_validate_json;
         return $parameter;
     }
@@ -79,6 +77,7 @@ sub define_body {
 
 sub _validate_json {
     my $self = $_[0];
+
     # for my $field (@REQ_ATTRIBUTES) {
     #     croak "$self is missing required field $field" unless defined $self->{$field};
     # }
@@ -114,10 +113,10 @@ sub TO_JSON {
     };
 
     # Schema fields we need to force to be numeric
-    
+
     if ( defined $self->{schema} ) {
         $json->{schema} = $self->{schema};
-        force_numeric($json->{schema});
+        force_numeric( $json->{schema} );
     }
     elsif ( defined $self->{content} ) {
         $json->{content} = $self->{content};
@@ -125,11 +124,12 @@ sub TO_JSON {
         # content type is just a hash, but we don't want to print the validator too
         for my $content_type ( keys %{ $json->{content} } ) {
             delete $json->{content}->{$content_type}{validator};
-            force_numeric($json->{content}->{$content_type}{schema});
+            force_numeric( $json->{content}->{$content_type}{schema} );
         }
     }
 
-    if ($self->{in} eq "requestBody") {
+    if ( $self->{in} eq "requestBody" ) {
+
         #remove some fields that requestBody doesn't need
         delete $json->{in};
         delete $json->{name};
@@ -142,18 +142,20 @@ sub TO_JSON {
 }
 
 sub force_numeric {
-    my $schema = $_[0];
-    my @numerics = ('minLength', 'maxLength', 'minimum', 'maximum', 'minItems', 'maxItems');
+    my $schema   = $_[0];
+    my @numerics = ( 'minLength', 'maxLength', 'minimum', 'maximum', 'minItems', 'maxItems' );
 
-    if ($schema->{type} eq 'object') {
-        for my $prop (keys %{ $schema->{properties} }) {
-            force_numeric($schema->{properties}{$prop});
+    if ( $schema->{type} eq 'object' ) {
+        for my $prop ( keys %{ $schema->{properties} } ) {
+            force_numeric( $schema->{properties}{$prop} );
         }
-    } elsif ($schema->{type} eq 'array') {
-        force_numeric($schema->{items});
-    } else {
+    }
+    elsif ( $schema->{type} eq 'array' ) {
+        force_numeric( $schema->{items} );
+    }
+    else {
         foreach my $item (@numerics) {
-            $schema->{$item} += 0 if defined($schema->{$item});
+            $schema->{$item} += 0 if defined( $schema->{$item} );
         }
     }
 }

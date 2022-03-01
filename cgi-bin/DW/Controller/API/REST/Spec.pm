@@ -44,7 +44,9 @@ sub _spec_20 {
         { "api_key" =>
             { "type" => "http", "scheme" => "bearer", "bearerFormat" => "Bearer <api_key>" } };
 
-    my @security = map { { $_ => [] }} keys(%$security_defs);
+    my @security = map {
+        { $_ => [] }
+    } keys(%$security_defs);
     my %spec = (
         openapi => '3.0.0',
         servers => [

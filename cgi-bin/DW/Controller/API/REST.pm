@@ -148,7 +148,7 @@ sub _dispatcher {
     my $r      = $rv->{r};
     my $keystr = $r->header_in('Authorization');
     my $apikey;
-    if (defined($keystr) ){
+    if ( defined($keystr) ) {
         $keystr =~ s/Bearer (\w+)/$1/;
         $apikey = DW::API::Key->get_key($keystr);
     }
@@ -173,7 +173,8 @@ sub _dispatcher {
 
     # check path-level parameters.
     for my $param ( keys %{ $self->{path}{params} } ) {
-        my $valid = _validate_param( $param, $self->{path}{params}{$param}, $r, $path_params, $args );
+        my $valid =
+            _validate_param( $param, $self->{path}{params}{$param}, $r, $path_params, $args );
         return unless $valid;
     }
     my $method      = lc $r->method;
@@ -185,11 +186,13 @@ sub _dispatcher {
         my $valid = _validate_param( $param, $method_self->{params}{$param}, $r, undef, $args );
         return unless $valid;
     }
+
     # if we accept a request body, validate that too.
     if ( defined $method_self->{requestBody} ) {
         my $valid = _validate_body( $method_self->{requestBody}, $r, $args );
         return unless $valid;
     }
+
     # some handlers need to know what version they are
     $method_self->{ver} = $self->{ver};
 
@@ -274,7 +277,7 @@ sub _validate_body {
     my ( $config, $r, $arg_obj ) = @_;
     my $preq         = $config->{required};
     my $content_type = lc $r->header_in('Content-Type');
-    $content_type =~ s/;.*//; # drop data that isn't the MIMEtype
+    $content_type =~ s/;.*//;    # drop data that isn't the MIMEtype
     my $p;
 
     if ( $content_type eq 'application/json' ) {
@@ -292,7 +295,8 @@ sub _validate_body {
             $upload_hash->add( $item->{name} => $item->{body} );
         }
         $p = $upload_hash;
-    } else {
+    }
+    else {
         warn "Unexpected content-type $content_type";
     }
 
@@ -320,7 +324,7 @@ sub _validate_body {
         return 0;
     }
     $arg_obj->{body} = $p;
-    
+
     return 1;
 }
 
@@ -371,74 +375,75 @@ sub TO_JSON {
 }
 
 sub params {
-    my $self = $_[0];
+    my $self       = $_[0];
     my $parameters = [ values %{ $self->{path}{params} } ];
     return $parameters;
 }
 
 sub methods {
-    my $self = $_[0];
+    my $self    = $_[0];
     my $methods = $self->{path}{methods};
     return $methods;
 }
+
 sub to_template {
-    my $self = $_[0];
+    my $self       = $_[0];
     my $parameters = [ values %{ $self->{path}{params} } ];
-    my $methods = $self->{path}{methods};
-    my $vars = {
-        params => $parameters,
+    my $methods    = $self->{path}{methods};
+    my $vars       = {
+        params  => $parameters,
         methods => $methods
     };
-    return DW::Template->render_template( 'api/path.tt', $vars, {no_sitescheme => 1});
+    return DW::Template->render_template( 'api/path.tt', $vars, { no_sitescheme => 1 } );
 
 }
 
-DW::Routing->register_string( '/api',             \&api_handler,    app => 1 );
-DW::Routing->register_string( '/api/',             \&api_handler,    app => 1 );
+DW::Routing->register_string( '/api',  \&api_handler, app => 1 );
+DW::Routing->register_string( '/api/', \&api_handler, app => 1 );
 
 sub api_handler {
     my ( $ok, $rv ) = controller();
     return $rv unless $ok;
-    my $r             = $rv->{r};
-    my $u             = $rv->{u};
-    my $remote        = $rv->{remote};
+    my $r      = $rv->{r};
+    my $u      = $rv->{u};
+    my $remote = $rv->{remote};
 
-    my %api  = %API_DOCS;
+    my %api = %API_DOCS;
 
     my $paths = $api{1};
     my $vars;
     $vars->{paths} = $paths;
-    $vars->{key} = DW::API::Key->get_one($remote);
-    
+    $vars->{key}   = DW::API::Key->get_one($remote);
+
     return DW::Template->render_template( 'api.tt', $vars );
 }
 
-DW::Routing->register_string( '/api/getkey',             \&key_handler,    app => 1 );
+DW::Routing->register_string( '/api/getkey', \&key_handler, app => 1 );
 
 sub key_handler {
     my ( $ok, $rv ) = controller();
     return $rv unless $ok;
-    my $r             = $rv->{r};
-    my $remote        = $rv->{remote};
+    my $r      = $rv->{r};
+    my $remote = $rv->{remote};
 
     my $key = DW::API::Key->get_one($remote);
 
     $r->status(200);
     $r->content_type('text/plain; charset=utf-8');
-    $r->print($key->{keyhash});
+    $r->print( $key->{keyhash} );
     return $r->OK;
-}   
+}
 
-DW::Routing->register_string('/internal/api/404', \&api_404_handler, app => 1);
+DW::Routing->register_string( '/internal/api/404', \&api_404_handler, app => 1 );
 
 sub api_404_handler {
-    my ( $ok, $rv ) = controller(anonymous => 1);
+    my ( $ok, $rv ) = controller( anonymous => 1 );
     return $rv unless $ok;
-    my $r             = $rv->{r};
+    my $r = $rv->{r};
 
     $r->status(404);
     $r->content_type('application/json; charset=utf-8');
-    $r->print(to_json( { success => 0, error => "Not found." }));
+    $r->print( to_json( { success => 0, error => "Not found." } ) );
     return $r->OK;
 }
 

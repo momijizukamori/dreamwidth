@@ -26,7 +26,7 @@ paths:
           description: Journal or entry specified does not exist.
         403:
           description: You aren't authorized to view that entry.
-    patch:
+    post:
       description: Edit a specified journal entry.
       requestBody:
         content:

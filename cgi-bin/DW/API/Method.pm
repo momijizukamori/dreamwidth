@@ -68,10 +68,10 @@ sub param {
 sub body {
     my ( $self, $config ) = @_;
     $self->{requestBody}->{required} = $config->{required};
-    for my $ct ( keys( $config->{content}) ) {
-        my $param = DW::API::Parameter->define_body($config->{content}->{$ct}, $ct);
+    for my $ct ( keys( $config->{content} ) ) {
+        my $param = DW::API::Parameter->define_body( $config->{content}->{$ct}, $ct );
         $self->{requestBody}{content}{$ct} = $param;
-        }
+    }
 
 }
 
@@ -154,7 +154,12 @@ sub rest_ok {
     # if we have JSON, call the formatter to pretty-print it. Otherwise, we assume
     # other content-types have already been properly formatted for us.
     if ( $content_type eq "application/json" ) {
-        $r->print( to_json( $response, { convert_blessed => 1, pretty => 1, canonical => 1, allow_nonref => => 1 } ) );
+        $r->print(
+            to_json(
+                $response,
+                { convert_blessed => 1, pretty => 1, canonical => 1, allow_nonref => => 1 }
+            )
+        );
     }
     else {
         $r->print($response);
@@ -200,11 +205,12 @@ sub TO_JSON {
         $json->{parameters} = [ values %{ $self->{params} } ];
     }
 
-    if (defined $self->{requestBody}) {
+    if ( defined $self->{requestBody} ) {
         $json->{requestBody} = $self->{requestBody};
-        if (defined $self->{requestBody}{required} && $self->{requestBody}{required}) {
+        if ( defined $self->{requestBody}{required} && $self->{requestBody}{required} ) {
             $json->{requestBody}{required} = $JSON::true;
-        } else {
+        }
+        else {
             delete $json->{requestBody}{required};
         }
     }

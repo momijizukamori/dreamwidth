@@ -25,11 +25,10 @@ use JSON;
 use DW::Mood;
 
 # Define route and associated params
-my $moods = DW::Controller::API::REST->path('moods.yaml', 1, {'get' => \&rest_get_list});
-
+my $moods = DW::Controller::API::REST->path( 'moods.yaml', 1, { 'get' => \&rest_get_list } );
 
 sub rest_get_list {
-	my ( $self ) = @_;
+    my ($self) = @_;
     return $self->rest_ok( DW::Mood->get_moods );
 }
 
