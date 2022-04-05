@@ -43,6 +43,9 @@ the same terms as Perl itself.  For a copy of the license, please reference
 
     # page-specific
     "js/pages/entry/new.js"
+    "js/vendor/plain.bundle.js"
+    "stc/main.css"
+    "stc/fa/css/all.css"
 
 ) -%]
 
