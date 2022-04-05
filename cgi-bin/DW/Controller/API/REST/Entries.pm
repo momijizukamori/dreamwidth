@@ -448,16 +448,19 @@ sub rest_get {
 sub json_from_entry {
     my ( $remote, $item ) = @_;
 
+    #print Dumper($item->currents());
+
     my $entry = {};
     $entry->{subject_html} = $item->subject_html();
     $entry->{body_html}    = $item->event_html(0);
-    $entry->{poster}       = $item->poster()->{user};
+    $entry->{poster}       = {username => $item->poster()->{user}, display_name => $item->poster()->{name}};
     $entry->{url}          = $item->url();
     $entry->{security}     = $item->security();
     $entry->{datetime}     = $item->{eventtime};
     my @entry_tags = $item->tags();
     $entry->{tags}     = ( \@entry_tags );
-    $entry->{icon}     = $item->userpic_kw || '';
+    $entry->{icon_keyword} = $item->userpic_kw || '(default)';
+    $entry->{icon}     = $item->userpic;
     $entry->{entry_id} = delete $item->{ditemid};
 
     #$item->{metadata} = $item->currents;
