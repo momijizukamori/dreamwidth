@@ -108,17 +108,19 @@ function isNodeAttrActive(node, attr, val) {
 function isAttrActive(attr, val) {
     return function(state) {
         let { doc, selection } = state;
+        let flag = false;
         if (selection.empty) {
             let pos = selection.$head;
             let { depth } = pos;
             for (let i = 0; i <= depth; i++) {
                 let parent = pos.node(i);
                 if (parent.attrs[attr] == val) {
-                    return true;
+                    console.log(parent);
+                    flag = true;
                 }
             }
         }
-        return false;
+        return flag;
     };
 }
 
@@ -175,6 +177,7 @@ class SimpleToolbar {
     this.items = this.createItems(items);
     this.label = label;
     this.editorId = editorId;
+    this.editorView = document.getElementById(editorId);
     this.navItems = this.items.flatMap(item => item.navItem());
 
     this.domNode = this.createElement();
@@ -498,12 +501,17 @@ class ToolbarDropdown {
     }
 
     getActive(state) {
+        let activeSelected = false;
         this.items.forEach(item => {
             let active = item.active(state);
             if (active) {
                 this.setSelected(item);
+                activeSelected = true;
             }
         });
+        if (!activeSelected) {
+            this.setSelected(this.default_item);
+        }
     }
 
 }
@@ -581,6 +589,7 @@ class DropdownItem {
 
         this.domNode.addEventListener('click', e => {
             this.menu.activateItem(this);
+            this.menu.toolbar.editorView.focus();
         });
 
         this.domNode.addEventListener('keydown', e => {
@@ -693,7 +702,7 @@ class ToolbarItem {
     this.domNode.addEventListener('click', e => {
       this.toolbar.setFocusItem(this);
       this.toolbar.activateItem(this);
-      this.toolbar.editorView.dom.focus();
+      this.toolbar.editorView.focus();
     });
 
     this.domNode.addEventListener('focus', e => {
@@ -990,6 +999,14 @@ class ToolbarGroupItem extends _ToolbarItem_js__WEBPACK_IMPORTED_MODULE_0__.Tool
         this.group.resetChecked();
         this.setChecked();
         this.baseAction(...args);
+      };
+
+      this.active = (state) => {
+        if (this.baseActive && this.baseActive(state)) {
+          this.setChecked();
+        } else {
+          this.resetChecked();
+        }
       };
   
     }
@@ -17994,6 +18011,8 @@ const initCutPlugin = new prosemirror_state__WEBPACK_IMPORTED_MODULE_0__.Plugin(
       let newPos = newState.selection.$head.pos;
       let oldPos = oldState.selection.$head.pos;
 
+
+
       let cuts = [];
       oldState.doc.descendants((node, pos, parent) => {
           if (node.type.name == 'cut') {
@@ -18151,6 +18170,7 @@ const attrsToDom = (tag, node) => {
   let style = align ? {style: `text-align:${align}`} : {};
   return [ tag, style, 0];
 }; 
+
 const extNodes = {
   text_wrapper: {
     content: "inline*",
@@ -18349,7 +18369,8 @@ const extNodes = {
 
 __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   "mySchema": () => (/* binding */ mySchema)
+/* harmony export */   "mySchema": () => (/* binding */ mySchema),
+/* harmony export */   "blockWithWrapper": () => (/* binding */ blockWithWrapper)
 /* harmony export */ });
 /* harmony import */ var _extended_schema_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./extended-schema.js */ "./src/extended-schema.js");
 /* harmony import */ var prosemirror_model__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! prosemirror-model */ "./node_modules/prosemirror-model/dist/index.es.js");
@@ -18382,6 +18403,8 @@ const mySchema = new prosemirror_model__WEBPACK_IMPORTED_MODULE_1__.Schema({
   })),
   marks: prosemirror_schema_basic__WEBPACK_IMPORTED_MODULE_2__.schema.spec.marks.append(_extended_schema_js__WEBPACK_IMPORTED_MODULE_0__.extMarks)
 });
+
+const blockWithWrapper = [mySchema.nodes.blockquote, mySchema.nodes.div, mySchema.nodes.cut ];
 
 /***/ }),
 
@@ -18665,20 +18688,64 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var prosemirror_commands__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! prosemirror-commands */ "./node_modules/prosemirror-commands/dist/index.es.js");
 /* harmony import */ var _fullSchema_js__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./fullSchema.js */ "./src/fullSchema.js");
 /* harmony import */ var _utils_js__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ./utils.js */ "./src/utils.js");
+/* harmony import */ var prosemirror_state__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! prosemirror-state */ "./node_modules/prosemirror-state/dist/index.es.js");
 
 
 
 
 
 
-const br = (0,prosemirror_commands__WEBPACK_IMPORTED_MODULE_2__.chainCommands)(prosemirror_commands__WEBPACK_IMPORTED_MODULE_2__.exitCode, function (state, dispatch) {
+
+
+let lastEnterTime = Date.now();
+
+const modEnter = (0,prosemirror_commands__WEBPACK_IMPORTED_MODULE_2__.chainCommands)(prosemirror_commands__WEBPACK_IMPORTED_MODULE_2__.exitCode, prosemirror_commands__WEBPACK_IMPORTED_MODULE_2__.liftEmptyBlock, prosemirror_commands__WEBPACK_IMPORTED_MODULE_2__.splitBlock, function (state, dispatch) {
     dispatch(state.tr.replaceSelectionWith(_fullSchema_js__WEBPACK_IMPORTED_MODULE_3__.mySchema.nodes.hard_break.create()).scrollIntoView());
     return true;
   });
+
+function doubleEnter(state, dispatch) {
+  const currentTime = Date.now();
+  if (currentTime - lastEnterTime < 300) {
+    // we have double-tap
+
+    console.log("double enter!");
+    let {selection, tr, doc} = state;
+    let pos = selection.$head;
+
+    if ((pos.depth > 1 || (pos.depth == 1 && pos.parent.type != _fullSchema_js__WEBPACK_IMPORTED_MODULE_3__.mySchema.nodes.text_wrapper)) && 
+      (pos.parentOffset + 2 == pos.parent.nodeSize)) {
+      console.log("in wrapper");
+      // We're at the end of a block
+      // Remove the <br> created by the first enter
+      tr = tr.delete(pos.pos - 1, pos.pos);
+      let newPos = tr.selection.$head;
+
+      let afterPos = pos.depth == 1 ? newPos.after(pos.depth) + 1 : newPos.after(pos.depth - 1) + 1;
+
+      if (tr.doc.nodeSize - afterPos < 2) {
+        // We're at the end of the doc, and we have to insert a new text node first
+        tr = tr.replaceWith(afterPos - 1, afterPos - 1, _fullSchema_js__WEBPACK_IMPORTED_MODULE_3__.mySchema.nodes.text_wrapper.createAndFill());
+      }
+      let newSelect = prosemirror_state__WEBPACK_IMPORTED_MODULE_5__.Selection.near(tr.doc.resolve(afterPos), 1);
+      dispatch(tr.setSelection(newSelect));
+      return true;
+    }
+    (0,prosemirror_commands__WEBPACK_IMPORTED_MODULE_2__.chainCommands)(prosemirror_commands__WEBPACK_IMPORTED_MODULE_2__.liftEmptyBlock, prosemirror_commands__WEBPACK_IMPORTED_MODULE_2__.splitBlock)
+    return true;
+  } else {
+    lastEnterTime = currentTime;
+    return false;
+  }
+}
   
+const enter = (0,prosemirror_commands__WEBPACK_IMPORTED_MODULE_2__.chainCommands)(doubleEnter, (0,prosemirror_schema_list__WEBPACK_IMPORTED_MODULE_0__.splitListItem)(_fullSchema_js__WEBPACK_IMPORTED_MODULE_3__.mySchema.nodes.list_item), function (state, dispatch) {
+  dispatch(state.tr.replaceSelectionWith(_fullSchema_js__WEBPACK_IMPORTED_MODULE_3__.mySchema.nodes.hard_break.create()).scrollIntoView());
+  return true;
+});
 
 const keys = {
-    "Enter": (0,prosemirror_schema_list__WEBPACK_IMPORTED_MODULE_0__.splitListItem)(_fullSchema_js__WEBPACK_IMPORTED_MODULE_3__.mySchema.nodes.list_item),
+    "Enter": enter,
     "Mod-z": prosemirror_history__WEBPACK_IMPORTED_MODULE_1__.undo,
     "Shift-Mod-z": prosemirror_history__WEBPACK_IMPORTED_MODULE_1__.redo,
     "Mod-y": prosemirror_history__WEBPACK_IMPORTED_MODULE_1__.redo,
@@ -18692,12 +18759,13 @@ const keys = {
     "Mod-S": (0,prosemirror_commands__WEBPACK_IMPORTED_MODULE_2__.toggleMark)(_fullSchema_js__WEBPACK_IMPORTED_MODULE_3__.mySchema.marks.strikethrough),
     "Mod-`": (0,prosemirror_commands__WEBPACK_IMPORTED_MODULE_2__.toggleMark)(_fullSchema_js__WEBPACK_IMPORTED_MODULE_3__.mySchema.marks.code),
     "Mod-e": _utils_js__WEBPACK_IMPORTED_MODULE_4__.toggleUser,
-    "Shift-Ctrl-1": (0,prosemirror_commands__WEBPACK_IMPORTED_MODULE_2__.setBlockType)(_fullSchema_js__WEBPACK_IMPORTED_MODULE_3__.mySchema.nodes.heading, {level : 1}),
-    "Shift-Ctrl-2": (0,prosemirror_commands__WEBPACK_IMPORTED_MODULE_2__.setBlockType)(_fullSchema_js__WEBPACK_IMPORTED_MODULE_3__.mySchema.nodes.heading, {level : 2}),
-    "Shift-Ctrl-3": (0,prosemirror_commands__WEBPACK_IMPORTED_MODULE_2__.setBlockType)(_fullSchema_js__WEBPACK_IMPORTED_MODULE_3__.mySchema.nodes.heading, {level : 3}),
-    "Shift-Ctrl-4": (0,prosemirror_commands__WEBPACK_IMPORTED_MODULE_2__.setBlockType)(_fullSchema_js__WEBPACK_IMPORTED_MODULE_3__.mySchema.nodes.heading, {level : 4}),
-    "Shift-Ctrl-5": (0,prosemirror_commands__WEBPACK_IMPORTED_MODULE_2__.setBlockType)(_fullSchema_js__WEBPACK_IMPORTED_MODULE_3__.mySchema.nodes.heading, {level : 5}),
-    "Shift-Ctrl-6": (0,prosemirror_commands__WEBPACK_IMPORTED_MODULE_2__.setBlockType)(_fullSchema_js__WEBPACK_IMPORTED_MODULE_3__.mySchema.nodes.heading, {level : 6}),
+    "Mod-c": _utils_js__WEBPACK_IMPORTED_MODULE_4__.insertCut,
+    "Shift-Ctrl-1": (0,_utils_js__WEBPACK_IMPORTED_MODULE_4__.createBlock)(_fullSchema_js__WEBPACK_IMPORTED_MODULE_3__.mySchema.nodes.heading, {level : 1}),
+    "Shift-Ctrl-2": (0,_utils_js__WEBPACK_IMPORTED_MODULE_4__.createBlock)(_fullSchema_js__WEBPACK_IMPORTED_MODULE_3__.mySchema.nodes.heading, {level : 2}),
+    "Shift-Ctrl-3": (0,_utils_js__WEBPACK_IMPORTED_MODULE_4__.createBlock)(_fullSchema_js__WEBPACK_IMPORTED_MODULE_3__.mySchema.nodes.heading, {level : 3}),
+    "Shift-Ctrl-4": (0,_utils_js__WEBPACK_IMPORTED_MODULE_4__.createBlock)(_fullSchema_js__WEBPACK_IMPORTED_MODULE_3__.mySchema.nodes.heading, {level : 4}),
+    "Shift-Ctrl-5": (0,_utils_js__WEBPACK_IMPORTED_MODULE_4__.createBlock)(_fullSchema_js__WEBPACK_IMPORTED_MODULE_3__.mySchema.nodes.heading, {level : 5}),
+    "Shift-Ctrl-6": (0,_utils_js__WEBPACK_IMPORTED_MODULE_4__.createBlock)(_fullSchema_js__WEBPACK_IMPORTED_MODULE_3__.mySchema.nodes.heading, {level : 6}),
     "Shift-Ctrl-8": (0,prosemirror_schema_list__WEBPACK_IMPORTED_MODULE_0__.wrapInList)(_fullSchema_js__WEBPACK_IMPORTED_MODULE_3__.mySchema.nodes.bullet_list),
     "Shift-Ctrl-9": (0,prosemirror_schema_list__WEBPACK_IMPORTED_MODULE_0__.wrapInList)(_fullSchema_js__WEBPACK_IMPORTED_MODULE_3__.mySchema.nodes.ordered_list),
     "Ctrl->": (0,prosemirror_commands__WEBPACK_IMPORTED_MODULE_2__.wrapIn)(_fullSchema_js__WEBPACK_IMPORTED_MODULE_3__.mySchema.nodes.blockquote),
@@ -18705,9 +18773,9 @@ const keys = {
       dispatch(state.tr.replaceSelectionWith(_fullSchema_js__WEBPACK_IMPORTED_MODULE_3__.mySchema.nodes.hr.create()).scrollIntoView());
       return true;
     },
-    "Mod-Enter": br,
-    "Shift-Enter": br,
-    "Ctrl-Enter": br,
+    "Mod-Enter": modEnter,
+    "Shift-Enter": modEnter,
+    "Ctrl-Enter": modEnter,
   };
 
 /***/ }),
@@ -18828,7 +18896,7 @@ function setupRTE() {
             (0,prosemirror_dropcursor__WEBPACK_IMPORTED_MODULE_7__.dropCursor)(),
             (0,prosemirror_gapcursor__WEBPACK_IMPORTED_MODULE_8__.gapCursor)(),
             (0,prosemirror_keymap__WEBPACK_IMPORTED_MODULE_4__.keymap)(_keyCommands_js__WEBPACK_IMPORTED_MODULE_11__.keys),
-            //keymap(baseKeymap),
+            (0,prosemirror_keymap__WEBPACK_IMPORTED_MODULE_4__.keymap)(prosemirror_commands__WEBPACK_IMPORTED_MODULE_3__.baseKeymap),
             (0,prosemirror_history__WEBPACK_IMPORTED_MODULE_5__.history)(),
 
             _cutView_js__WEBPACK_IMPORTED_MODULE_16__.initCutPlugin,
@@ -18847,9 +18915,9 @@ function setupRTE() {
         state: state,
         nodeViews: {
             image(node, view, getPos) { return new _imageView_js__WEBPACK_IMPORTED_MODULE_13__.ResizeView(node, view, getPos, 'img'); },
-            //cut(node, view, getPos) {return new CutView(node, view, getPos);}
-            //embed(node, view, getPos) { return new ResizeView(node, view, getPos, 'iframe'); }
-            // username(node, view, getPos) { console.log(node); return new UserView(node, view, getPos) }
+        //     //cut(node, view, getPos) {return new CutView(node, view, getPos);}
+        //     //embed(node, view, getPos) { return new ResizeView(node, view, getPos, 'iframe'); }
+        //     // username(node, view, getPos) { console.log(node); return new UserView(node, view, getPos) }
         }
     });
 
@@ -18904,6 +18972,7 @@ document.querySelector('#editor').addEventListener('change', e => {
 
 __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "blockItem": () => (/* binding */ blockItem),
 /* harmony export */   "menu": () => (/* binding */ menu)
 /* harmony export */ });
 /* harmony import */ var _fullSchema_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./fullSchema.js */ "./src/fullSchema.js");
@@ -18926,6 +18995,7 @@ __webpack_require__.r(__webpack_exports__);
 
 
 
+ 
 
 
 function insertLink(state, dispatch) {
@@ -18943,23 +19013,6 @@ function insertLink(state, dispatch) {
         let href = prompt("Link Location", "");
         return (0,prosemirror_commands__WEBPACK_IMPORTED_MODULE_2__.toggleMark)(_fullSchema_js__WEBPACK_IMPORTED_MODULE_0__.mySchema.marks.link, {href: href})(state, dispatch);
     }
-  }
-
-  function insertCut(state, dispatch) {
-        let {doc, selection} = state;
-        let text = prompt("Cut Text", ""); 
-        let attrs = text ? {text: text} : null;
-        var cutNode;
-        if (selection.empty) {
-          let text = _fullSchema_js__WEBPACK_IMPORTED_MODULE_0__.mySchema.text(" ");
-          let textNode = _fullSchema_js__WEBPACK_IMPORTED_MODULE_0__.mySchema.nodes.text_wrapper.create(null, text);
-          cutNode = _fullSchema_js__WEBPACK_IMPORTED_MODULE_0__.mySchema.nodes.cut.create(attrs, textNode);
-        } else {
-          cutNode = _fullSchema_js__WEBPACK_IMPORTED_MODULE_0__.mySchema.nodes.cut.create(attrs, selection.content().content);
-        }
-        let tr = state.tr.replaceSelectionWith(cutNode);
-        dispatch(tr);
-  
   }
 
   const insertImage = (state, _, view) =>{
@@ -18992,35 +19045,75 @@ function insertLink(state, dispatch) {
   
   }
 
+  function nodeEq(node, type, attrs) {
+    let flag = false;
+    flag = node.type == type;
+
+    if (attrs && flag) {
+      flag = Object.keys(attrs).every(key => {
+        return node.attrs[key] == attrs[key];
+      });
+    }
+    return flag;
+  }
+
+  function isBlockActive(type, attrs) {
+    return function(state) {
+      let {selection, doc} = state;
+      if(selection.$head.parent == selection.$anchor.parent) {
+        if (_fullSchema_js__WEBPACK_IMPORTED_MODULE_0__.blockWithWrapper.includes(type)) {
+          let gparent = selection.$head.node(-1);
+          return nodeEq(gparent, type, attrs);
+        } else {
+          let parent = selection.$head.parent;
+          return nodeEq(parent, type, attrs);
+        }
+      }
+    }
+  }
+
+  function blockItem(type, attrs, label, icon) {
+    const value = label.toLowerCase().replace(/ /, "-");
+    const finalIcon = icon || value;
+
+    return {
+        icon: finalIcon,
+        value: value,
+        label: label,
+        action: (0,_utils_js__WEBPACK_IMPORTED_MODULE_6__.createBlock)(type, attrs),
+        active: isBlockActive(type, attrs)
+    };
+}
+
 const menu = (0,_js_ProsemirrorToolbar_js__WEBPACK_IMPORTED_MODULE_4__.toolbarPlugin)([
     (0,_js_ProsemirrorToolbar_js__WEBPACK_IMPORTED_MODULE_4__.markItem)(_fullSchema_js__WEBPACK_IMPORTED_MODULE_0__.mySchema.marks.strong, "Bold"),
     (0,_js_ProsemirrorToolbar_js__WEBPACK_IMPORTED_MODULE_4__.markItem)(_fullSchema_js__WEBPACK_IMPORTED_MODULE_0__.mySchema.marks.em, "Italic"),
     (0,_js_ProsemirrorToolbar_js__WEBPACK_IMPORTED_MODULE_4__.markItem)(_fullSchema_js__WEBPACK_IMPORTED_MODULE_0__.mySchema.marks.underline, "Underline"),
     (0,_js_ProsemirrorToolbar_js__WEBPACK_IMPORTED_MODULE_4__.markItem)(_fullSchema_js__WEBPACK_IMPORTED_MODULE_0__.mySchema.marks.strikethrough, "Strikethrough"),
     (0,_js_ProsemirrorToolbar_js__WEBPACK_IMPORTED_MODULE_4__.markItem)(_fullSchema_js__WEBPACK_IMPORTED_MODULE_0__.mySchema.marks.code, "Code", "terminal"),
-    {action: (0,prosemirror_schema_list__WEBPACK_IMPORTED_MODULE_5__.wrapInList)(_fullSchema_js__WEBPACK_IMPORTED_MODULE_0__.mySchema.nodes.bullet_list), label: 'Bullet List', icon: 'list-ul', value: 'bullet-list'},
+    {action: (0,prosemirror_schema_list__WEBPACK_IMPORTED_MODULE_5__.wrapInList)(_fullSchema_js__WEBPACK_IMPORTED_MODULE_0__.mySchema.nodes.bullet_list), label: 'Bullet List', icon: 'list-ul', value: 'bullet-list', enabled: true},
     {action: (0,prosemirror_schema_list__WEBPACK_IMPORTED_MODULE_5__.wrapInList)(_fullSchema_js__WEBPACK_IMPORTED_MODULE_0__.mySchema.nodes.ordered_list), label: 'Ordered List', icon: 'list-ol', value: 'ordered-list'},
-    {action: (0,prosemirror_commands__WEBPACK_IMPORTED_MODULE_2__.wrapIn)(_fullSchema_js__WEBPACK_IMPORTED_MODULE_0__.mySchema.nodes.blockquote), label: 'Blockquote', icon: 'quote-left'},
+    {...blockItem(_fullSchema_js__WEBPACK_IMPORTED_MODULE_0__.mySchema.nodes.blockquote, undefined, 'Blockquote', 'quote-left'), enabled: true},
     {action: insertImage, label: 'Insert image', icon: 'image', value: 'image', enabled: true},
     {action: insertEmbed, label: 'Insert embed', icon: 'video', value: 'embed', enabled: true},
     {action: insertLink, label: 'Insert link', icon: 'link', value: 'link', enabled: true},
     {action: _utils_js__WEBPACK_IMPORTED_MODULE_6__.toggleUser, label: 'Insert user', icon: 'user', value: 'user', enabled: true },
-    {action: insertCut, label: 'Insert cut', icon: 'cut', value: 'cut', enabled: true },
+    {action: _utils_js__WEBPACK_IMPORTED_MODULE_6__.insertCut, label: 'Insert cut', icon: 'cut', value: 'cut', enabled: true },
     {type: 'buttongroup', label: 'alignment', items: [
-      {action: (0,_utils_js__WEBPACK_IMPORTED_MODULE_6__.createStyledNode)('div', {align: "left"}), label: 'left', icon: 'align-left', value: 'left', active: (0,_js_ProsemirrorToolbar_js__WEBPACK_IMPORTED_MODULE_4__.isAttrActive)("align", "left"), default_item: true, enabled: (0,_utils_js__WEBPACK_IMPORTED_MODULE_6__.canAddNode)('div')},
-      {action: (0,_utils_js__WEBPACK_IMPORTED_MODULE_6__.createStyledNode)('div', {align: "center"}), label: 'center', icon: 'align-center', value: 'center', active: (0,_js_ProsemirrorToolbar_js__WEBPACK_IMPORTED_MODULE_4__.isAttrActive)("align", "center"), enabled: (0,_utils_js__WEBPACK_IMPORTED_MODULE_6__.canAddNode)('div')},
-      {action: (0,_utils_js__WEBPACK_IMPORTED_MODULE_6__.createStyledNode)('div', {align: "right"}), label: 'right', icon: 'align-right', value: 'right', active: (0,_js_ProsemirrorToolbar_js__WEBPACK_IMPORTED_MODULE_4__.isAttrActive)("align", "right"), enabled: (0,_utils_js__WEBPACK_IMPORTED_MODULE_6__.canAddNode)('div')},
-      {action: (0,_utils_js__WEBPACK_IMPORTED_MODULE_6__.createStyledNode)('div', {align: "justify"}), label: 'justify', icon: 'align-justify', value: 'justify', active: (0,_js_ProsemirrorToolbar_js__WEBPACK_IMPORTED_MODULE_4__.isAttrActive)("align", "justify"), enabled: (0,_utils_js__WEBPACK_IMPORTED_MODULE_6__.canAddNode)('div')}
+      {action: (0,_utils_js__WEBPACK_IMPORTED_MODULE_6__.createStyledNode)(_fullSchema_js__WEBPACK_IMPORTED_MODULE_0__.mySchema.nodes.div, {align: "left"}), label: 'left', icon: 'align-left', value: 'left', active: (0,_js_ProsemirrorToolbar_js__WEBPACK_IMPORTED_MODULE_4__.isAttrActive)("align", "left"), default_item: true, enabled: (0,_utils_js__WEBPACK_IMPORTED_MODULE_6__.canAddNode)('div')},
+      {action: (0,_utils_js__WEBPACK_IMPORTED_MODULE_6__.createStyledNode)(_fullSchema_js__WEBPACK_IMPORTED_MODULE_0__.mySchema.nodes.div, {align: "center"}), label: 'center', icon: 'align-center', value: 'center', active: (0,_js_ProsemirrorToolbar_js__WEBPACK_IMPORTED_MODULE_4__.isAttrActive)("align", "center"), enabled: (0,_utils_js__WEBPACK_IMPORTED_MODULE_6__.canAddNode)('div')},
+      {action: (0,_utils_js__WEBPACK_IMPORTED_MODULE_6__.createStyledNode)(_fullSchema_js__WEBPACK_IMPORTED_MODULE_0__.mySchema.nodes.div, {align: "right"}), label: 'right', icon: 'align-right', value: 'right', active: (0,_js_ProsemirrorToolbar_js__WEBPACK_IMPORTED_MODULE_4__.isAttrActive)("align", "right"), enabled: (0,_utils_js__WEBPACK_IMPORTED_MODULE_6__.canAddNode)('div')},
+      {action: (0,_utils_js__WEBPACK_IMPORTED_MODULE_6__.createStyledNode)(_fullSchema_js__WEBPACK_IMPORTED_MODULE_0__.mySchema.nodes.div, {align: "justify"}), label: 'justify', icon: 'align-justify', value: 'justify', active: (0,_js_ProsemirrorToolbar_js__WEBPACK_IMPORTED_MODULE_4__.isAttrActive)("align", "justify"), enabled: (0,_utils_js__WEBPACK_IMPORTED_MODULE_6__.canAddNode)('div')}
     ]},
     {type: 'dropdown', label: 'heading', id: 'heading', items: [
-      {action: (0,prosemirror_commands__WEBPACK_IMPORTED_MODULE_2__.setBlockType)(_fullSchema_js__WEBPACK_IMPORTED_MODULE_0__.mySchema.nodes.heading, {level : 1}), label: 'Heading 1', icon: 'heading', value: 'heading1', active: (0,_js_ProsemirrorToolbar_js__WEBPACK_IMPORTED_MODULE_4__.isNodeAttrActive)(_fullSchema_js__WEBPACK_IMPORTED_MODULE_0__.mySchema.nodes.heading, "level", 1), default_item: true},
-      {action: (0,prosemirror_commands__WEBPACK_IMPORTED_MODULE_2__.setBlockType)(_fullSchema_js__WEBPACK_IMPORTED_MODULE_0__.mySchema.nodes.heading, {level : 2}), label: 'Heading 2', icon: 'heading', value: 'heading2', active: (0,_js_ProsemirrorToolbar_js__WEBPACK_IMPORTED_MODULE_4__.isNodeAttrActive)(_fullSchema_js__WEBPACK_IMPORTED_MODULE_0__.mySchema.nodes.heading, "level", 2)},
-      {action: (0,prosemirror_commands__WEBPACK_IMPORTED_MODULE_2__.setBlockType)(_fullSchema_js__WEBPACK_IMPORTED_MODULE_0__.mySchema.nodes.heading, {level : 3}), label: 'Heading 3', icon: 'heading', value: 'heading3', active: (0,_js_ProsemirrorToolbar_js__WEBPACK_IMPORTED_MODULE_4__.isNodeAttrActive)(_fullSchema_js__WEBPACK_IMPORTED_MODULE_0__.mySchema.nodes.heading, "level", 3)},
-      {action: (0,prosemirror_commands__WEBPACK_IMPORTED_MODULE_2__.setBlockType)(_fullSchema_js__WEBPACK_IMPORTED_MODULE_0__.mySchema.nodes.heading, {level : 4}), label: 'Heading 4', icon: 'heading', value: 'heading4', active: (0,_js_ProsemirrorToolbar_js__WEBPACK_IMPORTED_MODULE_4__.isNodeAttrActive)(_fullSchema_js__WEBPACK_IMPORTED_MODULE_0__.mySchema.nodes.heading, "level", 4)},
-      {action: (0,prosemirror_commands__WEBPACK_IMPORTED_MODULE_2__.setBlockType)(_fullSchema_js__WEBPACK_IMPORTED_MODULE_0__.mySchema.nodes.heading, {level : 5}), label: 'Heading 5', icon: 'heading', value: 'heading5', active: (0,_js_ProsemirrorToolbar_js__WEBPACK_IMPORTED_MODULE_4__.isNodeAttrActive)(_fullSchema_js__WEBPACK_IMPORTED_MODULE_0__.mySchema.nodes.heading, "level", 5)},
-      {action: (0,prosemirror_commands__WEBPACK_IMPORTED_MODULE_2__.setBlockType)(_fullSchema_js__WEBPACK_IMPORTED_MODULE_0__.mySchema.nodes.heading, {level : 6}), label: 'Heading 6', icon: 'heading', value: 'heading6', active: (0,_js_ProsemirrorToolbar_js__WEBPACK_IMPORTED_MODULE_4__.isNodeAttrActive)(_fullSchema_js__WEBPACK_IMPORTED_MODULE_0__.mySchema.nodes.heading, "level", 6)},
+      {...blockItem(_fullSchema_js__WEBPACK_IMPORTED_MODULE_0__.mySchema.nodes.heading, {level : 1}, 'Heading 1', 'heading'), default_item: true},
+      blockItem(_fullSchema_js__WEBPACK_IMPORTED_MODULE_0__.mySchema.nodes.heading, {level : 2}, 'Heading 2', 'heading'),
+      blockItem(_fullSchema_js__WEBPACK_IMPORTED_MODULE_0__.mySchema.nodes.heading, {level : 3}, 'Heading 3', 'heading'),
+      blockItem(_fullSchema_js__WEBPACK_IMPORTED_MODULE_0__.mySchema.nodes.heading, {level : 4}, 'Heading 4', 'heading'),
+      blockItem(_fullSchema_js__WEBPACK_IMPORTED_MODULE_0__.mySchema.nodes.heading, {level : 5}, 'Heading 5', 'heading'),
+      blockItem(_fullSchema_js__WEBPACK_IMPORTED_MODULE_0__.mySchema.nodes.heading, {level : 6}, 'Heading 6', 'heading'),
     ]},
-    {action: (0,prosemirror_commands__WEBPACK_IMPORTED_MODULE_2__.wrapIn)(_fullSchema_js__WEBPACK_IMPORTED_MODULE_0__.mySchema.nodes.table), label: 'Insert Table', icon: 'table', value: 'table'},
+    {action: (0,_utils_js__WEBPACK_IMPORTED_MODULE_6__.createBlock)(_fullSchema_js__WEBPACK_IMPORTED_MODULE_0__.mySchema.nodes.table), label: 'Insert Table', icon: 'table', value: 'table', enabled: true},
     {type: 'menu', label: "Table Actions", id: 'tables', items: [
       {label:"Insert column before", action: prosemirror_tables__WEBPACK_IMPORTED_MODULE_3__.addColumnBefore},
       {label:"Insert column after", action: prosemirror_tables__WEBPACK_IMPORTED_MODULE_3__.addColumnAfter},
@@ -19052,10 +19145,15 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
 /* harmony export */   "toggleUser": () => (/* binding */ toggleUser),
 /* harmony export */   "createStyledNode": () => (/* binding */ createStyledNode),
+/* harmony export */   "createBlock": () => (/* binding */ createBlock),
 /* harmony export */   "canAddNode": () => (/* binding */ canAddNode),
-/* harmony export */   "canApplyNodeStyle": () => (/* binding */ canApplyNodeStyle)
+/* harmony export */   "canApplyNodeStyle": () => (/* binding */ canApplyNodeStyle),
+/* harmony export */   "insertCut": () => (/* binding */ insertCut),
+/* harmony export */   "makeList": () => (/* binding */ makeList)
 /* harmony export */ });
 /* harmony import */ var _fullSchema_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./fullSchema.js */ "./src/fullSchema.js");
+/* harmony import */ var prosemirror_state__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! prosemirror-state */ "./node_modules/prosemirror-state/dist/index.es.js");
+
 
 
 function toggleUser(state, dispatch) {
@@ -19083,15 +19181,47 @@ function toggleUser(state, dispatch) {
     } else {return false;}
   }
 
-
 function createStyledNode(type, style) {
   return function(state, dispatch) {
-     let {doc, selection} = state;
-     let styledNode = _fullSchema_js__WEBPACK_IMPORTED_MODULE_0__.mySchema.nodes[type].create(style, selection.content().content);
-     let tr = state.tr.replaceSelectionWith(styledNode);
-     if(dispatch) {
-        dispatch(tr);
+     let {doc, selection, tr} = state;
+     let {from, to} = selection;
+     let validAttr = canApplyNodeStyle('align')(state);
+     console.log(validAttr);
+     if (validAttr) {
+      if (dispatch) {
+        doc.nodesBetween(from - 1, to, (node, pos) => { 
+          let styles = {...node.attrs, ...style};
+          tr.setNodeMarkup(pos, undefined, styles); return false; });
+        return dispatch(tr);
+      }
+     } else {
+       return createBlock(type, style) (state, dispatch);
      }
+  }
+}
+
+function createBlock(type, attrs) {
+  return function(state, dispatch) {
+    let {selection, doc} = state;
+    let text;
+    let pos = selection.to + 1;
+ 
+    if (selection.empty) {
+        text = _fullSchema_js__WEBPACK_IMPORTED_MODULE_0__.mySchema.text(" ");
+    } else {
+      text = doc.slice(selection.from, selection.to).content;
+    }
+
+    if (_fullSchema_js__WEBPACK_IMPORTED_MODULE_0__.blockWithWrapper.includes(type)) {
+      text = _fullSchema_js__WEBPACK_IMPORTED_MODULE_0__.mySchema.nodes.text_wrapper.createAndFill({}, text);
+    }
+    let newNode = type.createAndFill(attrs, text);
+    let tr = state.tr.replaceSelectionWith(newNode);
+    let resolved = tr.doc.resolve(tr.selection.to - 1);
+    let select = prosemirror_state__WEBPACK_IMPORTED_MODULE_1__.TextSelection.near(resolved, -1);
+    if (dispatch) {
+       return dispatch(tr.setSelection(select));
+    }
   }
 }
 
@@ -19110,10 +19240,14 @@ function canApplyNodeStyle(attr) {
       let {from, to} = selection;
       let canApply = true;
       if (selection.empty) {
-        let node = selection.$head.parent;
-        if (!node.type.attrs[attr]) {
-          canApply = false;
-        }
+          let pos = selection.$head;
+          let { depth } = pos;
+          for (let i = 0; i <= depth; i++) {
+              let parent = pos.node(i);
+              if (parent.attrs[attr]) {
+                  return true;
+              }
+          }
       } else {
         doc.nodesBetween(from - 1, to, (node) => {
           if (!node.type.attrs[attr]) {
@@ -19126,6 +19260,46 @@ function canApplyNodeStyle(attr) {
       };
   }
 
+
+function insertCut(state, dispatch) {
+  let {doc, selection} = state;
+  let cutText = prompt("Cut Text", ""); 
+  let attrs = cutText ? {text: cutText} : null;
+  var cutNode;
+  if (selection.empty) {
+    let text = _fullSchema_js__WEBPACK_IMPORTED_MODULE_0__.mySchema.text(" ");
+    let textNode = _fullSchema_js__WEBPACK_IMPORTED_MODULE_0__.mySchema.nodes.text_wrapper.create(null, text);
+    cutNode = _fullSchema_js__WEBPACK_IMPORTED_MODULE_0__.mySchema.nodes.cut.create(attrs, textNode);
+  } else {
+    let text = doc.slice(selection.from, selection.to).content;
+    let textNode = _fullSchema_js__WEBPACK_IMPORTED_MODULE_0__.mySchema.nodes.text_wrapper.createAndFill({}, text);
+    cutNode = _fullSchema_js__WEBPACK_IMPORTED_MODULE_0__.mySchema.nodes.cut.create(attrs, textNode);
+  }
+  
+  let tr = state.tr.replaceSelectionWith(cutNode);
+  let pos = tr.selection.to - 3;
+  let resolved = tr.doc.resolve(pos);
+  
+  return dispatch(tr.setSelection(prosemirror_state__WEBPACK_IMPORTED_MODULE_1__.TextSelection.near(resolved)));
+
+
+}
+
+function makeList(type) {
+  return function(state, dispatch) {
+    let {doc, selection, tr} = state;
+    console.log(selection);
+    if (selection.empty) {
+      let text = _fullSchema_js__WEBPACK_IMPORTED_MODULE_0__.mySchema.text(" ");
+      let textNode = _fullSchema_js__WEBPACK_IMPORTED_MODULE_0__.mySchema.nodes.text_wrapper.create(null, text);
+      tr = tr.replaceSelectionWith(textNode);
+      console.log(textNode.nodeSize);
+    } else {
+      console.log(selection.content().content);
+    }
+    return true;
+  }
+}
 
 /***/ }),
 
