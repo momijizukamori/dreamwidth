@@ -1282,7 +1282,7 @@ var plainToolbar = null;
 var mdToolbar = null;
 
 function setupPlain() {
-    plainToolbar = new _js_SimpleToolbar__WEBPACK_IMPORTED_MODULE_0__.SimpleToolbar(items, "toolbar", "contents");
+    plainToolbar = new _js_SimpleToolbar__WEBPACK_IMPORTED_MODULE_0__.SimpleToolbar(items, "toolbar", "entry-body");
     TextArea.parentNode.insertBefore(plainToolbar.domNode, TextArea);
 }
 
@@ -1295,11 +1295,12 @@ if (document.querySelector('#editor').value.includes("html")) {
   // Watch the format select for changes, and add or destroy the RTE as necessary
   document.querySelector('#editor').addEventListener('change', e => {
     let format = e.target.value;
-    if (format.includes("html")) {
+    if (format.includes("html") && !plainToolbar) {
       setupPlain();
     }
     if (!format.includes("html") && plainToolbar) {
       plainToolbar.destroy();
+      plainToolbar = null;
     }
   })
 

@@ -16,6 +16,11 @@ the same terms as Perl itself.  For a copy of the license, please reference
 
 [%- dw.need_res(
     "stc/css/pages/entry/new.css"
+    "stc/css/pages/entry/main.css"
+    "stc/css/pages/entry/editor.css"
+    "stc/css/pages/entry/rte.css"
+    "stc/css/pages/entry/tables.css"
+    "stc/css/pages/entry/css/all.css"
     "stc/css/components/button-groups.css"
 ) -%]
 
@@ -44,8 +49,6 @@ the same terms as Perl itself.  For a copy of the license, please reference
     # page-specific
     "js/pages/entry/new.js"
     "js/vendor/plain.bundle.js"
-    "stc/main.css"
-    "stc/fa/css/all.css"
 
 ) -%]
 
@@ -209,6 +212,7 @@ postFormInitData.strings = {
                     wrap = "soft"
 
                     labelclass = "hidden"
+                    id = "entry-body"
 
                     placeholder = dw.ml(".event.placeholder")
                 ) -%]
