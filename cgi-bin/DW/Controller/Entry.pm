@@ -32,6 +32,9 @@ use LJ::JSON;
 
 use DW::External::Account;
 
+my %VALID_SIZES =
+    ( map { $_ => $_ } ( 100, 320, 200, 640, 480, 1024, 768, 1280, 800, 600, 720, 1600, 1200 ) );
+
 my %form_to_props = (
 
     # currents / metadata
@@ -438,6 +441,7 @@ sub _init {
         security         => \@security,
         customgroups     => \@custom_groups,
         security_options => \%security_options,
+        valid_sizes => [%VALID_SIZES],
 
         journalu => $journalu,
 

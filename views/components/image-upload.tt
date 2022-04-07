@@ -99,7 +99,7 @@ the same terms as Perl itself.  For a copy of the license, please reference
             <div class="large-3 columns image-preview">
                 <div class="progress secondary"><span class="meter" style="width:0"></span></div>
             </div>
-            <div class="large-9 columns">
+            <div class="large-9 columns media-item">
                 <div class="row">
                     <div class="large-8 columns">
                         [%- INCLUDE row_with_field(
@@ -126,14 +126,14 @@ the same terms as Perl itself.  For a copy of the license, please reference
                 [%- INCLUDE row_with_field( label = "Description", name = "description", type = "textarea" ) %]
                 [%- INCLUDE row_with_field(
                             label = "Image Size"
-                            name  = "security"
+                            name  = "size"
 
                             type  = "select"
-                            items = security
-                            selected = default_security
+                            items = valid_sizes.nsort
+                            selected = 100
 
                         ) -%]
-            </div>
+                </div>
         </li>
         </script>
 </div>

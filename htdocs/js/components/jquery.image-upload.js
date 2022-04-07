@@ -3,11 +3,40 @@
     // this variable is just so we can map the label to its input
     // it is not the same as the file id
     var _uiCounter = 0;
-
+    var imageMap = {};
     var _uploadInProgress = false;
     var _metadataInProgress = false;
     var msg_log = $("#upload-log");
+    
+    function updateImageMap(id, attrs) {
+        if (imageMap[id]) {
+            imageMap[id] = {...imageMap[id], ...attrs};
+        } else {
+            imageMap[id] = attrs;
+        }
+    }
 
+    function encodeHTML(html) {
+        return html.replace( /([<>&"'\s])/g, function( m, c ) { return String.encodeEntity( c ) } );
+    }
+
+    function imageMaptoString() {
+        var items = [];
+        Object.keys(imageMap).forEach(function(key) {
+        let image = imageMap[key];
+        var escape_titletext = image.title ? encodeHTML(image.title) : null;
+        var escape_alttext = image.alttext ? encodeHTML(image.alttext) : null;
+        var thumbnail_url = image.url.replace(/(file\/)/g, `file/${image.size}x${image.size}/`);
+
+        var text = [];
+        text.push( `<a href='${image.url}'><img src='${thumbnail_url}'` );
+        if ( escape_titletext ) text.push( ` title='${escape_titletext}'` );
+        if ( escape_alttext ) text.push(` alt='${escape_alttext}'`);
+        text.push( " /></a>" );
+        items.push(text.join(""));
+    });
+    return items.join("\n");
+    }
     // hide the upload button, we'll have another one for saving descriptions
     $(".upload-form input[type=submit], .upload-form .log").hide();
 
@@ -22,8 +51,6 @@
         var data = {};
         $.each( form_fields, function( i, form_field ) {
             var file_id = form_field.getAttribute("data-file-id");
-
-            if (form_field.name == "generated-code") return;
 
             if ( ! data[file_id] )
                 data[file_id] = {};
@@ -54,10 +81,7 @@
                 });
             }
 
-            $.each(data.result, function( element_id, element_attributes ) {
-                $("#file_" + element_id + " input[name=generated-code]")
-                    .trigger( "imagecodeupdate", [ element_attributes ] );
-            });
+            $.each(data.result, updateImageMap);
         })
         .fail(function(jqXHR) {
             var response = JSON.parse(jqXHR.responseText);
@@ -72,12 +96,11 @@
         })
     };
 
-    if ( ! Modernizr.touch ) {
-        $(".upload-form-file-inputs")
-            .find('.row')
-                .prepend('<div class="large-12 columns"><div class="drop_zone">or drop images here</div></div>')
-            .end()
-    }
+    $(".upload-form-file-inputs")
+        .find('.row')
+            .prepend('<div class="large-12 columns"><div class="drop_zone">or drop images here</div></div>')
+        .end();
+
     $(".upload-form-file-inputs")
     .find('input[type=file]')
         .attr( 'multiple', 'multiple' )
@@ -108,7 +131,7 @@
                 }).end()
                 .find(":input").attr( "id", function() {
                     return this.name + _uiCounter;
-                })
+                });
 
             _uiCounter++;
 
@@ -133,6 +156,8 @@
         if ( response.success ) {
             var file_id = response.result.id;
 
+            updateImageMap(file_id, {url: response.result.url, size: 100 });
+
             data.context
                 .attr( "id", "file_" + file_id )
                 // update the form field names to use this image id
@@ -140,7 +165,6 @@
                     return file_id;
                 }).end()
                 .find(".progress").toggleClass( "secondary success" ).end()
-                .find("input[name=generated-code]").trigger("imagecodeupdate", [ response.result ]).end()
                 .find(".success").attr("style", "").end();
         } else {
             $(data.context).trigger( "uploaderror", [ { error : data.error } ] );
@@ -185,7 +209,17 @@
         _uploadInProgress = false;
     })
 
-    $('.upload-form').submit(function(e) {
+    $(document).on('change','.media-item', function(e) {
+        let id = e.target.dataset.fileId;
+        let name = e.target.getAttribute("name");
+        let value = e.target.value;
+        let data = {};
+        data[name] = value;
+        updateImageMap(id, data);
+
+    });
+
+    $('.image-upload-flex-wrapper .submit').on( "click", function(e) {
         e.preventDefault();
         e.stopPropagation();
 
@@ -195,6 +229,9 @@
         }
 
         _doEditRequest( formFields );
+
+        console.log(imageMaptoString());
+        $(document).trigger("imagecodeupdate", [imageMap]);
     });
 
     // error handler when uploading an image
@@ -212,6 +249,7 @@
                 .attr( "aria-invalid", true );
 
     }).on("imagecodeupdate", function(e, data) {
+        console.log("image code updated");
         var $field = $(e.target);
 
         var image = $field.data( "image-attributes" );
