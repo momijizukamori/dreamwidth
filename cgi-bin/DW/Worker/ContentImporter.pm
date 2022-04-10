@@ -158,6 +158,10 @@ sub fail {
     my ( $class, $imp, $item, $job, $msgt, @args ) = @_;
     $0 = 'content-importer [bored]';
 
+    # clear "request" cache of db handles to force revalidation in case one we need now
+    # has been idle during a long import
+    $LJ::DBIRole->clear_req_cache();
+
     if ( my $dbh = LJ::get_db_writer() ) {
         $dbh->do(
             "UPDATE import_items SET status = 'failed', last_touch = UNIX_TIMESTAMP() "
@@ -178,8 +182,11 @@ sub fail {
 
     $job->permanent_failure($msg);
 
-    $log->logcroak('Important failure: exiting worker.')
-        if $class->_should_exit($msg);
+    if ( $class->_should_exit($msg) ) {
+        $log->fatal('Important failure: exiting worker.');
+        open FILE, '>', "$LJ::VAR/$$.please_die" or exit 2;
+        close FILE;
+    }
 
     return;
 }
@@ -193,6 +200,10 @@ Temporarily fail this import job, it will get retried if it hasn't failed too ma
 sub temp_fail {
     my ( $class, $imp, $item, $job, $msgt, @args ) = @_;
     $0 = 'content-importer [bored]';
+
+    # clear "request" cache of db handles to force revalidation in case one we need now
+    # has been idle during a long import
+    $LJ::DBIRole->clear_req_cache();
 
     # Check if we are out of failures
     my $max_fails = $class->max_retries;
@@ -218,8 +229,11 @@ sub temp_fail {
 
     $job->failed($msg);
 
-    $log->logcroak('Important failure: exiting worker.')
-        if $class->_should_exit($msg);
+    if ( $class->_should_exit($msg) ) {
+        $log->fatal('Important failure: exiting worker.');
+        open FILE, '>', "$LJ::VAR/$$.please_die" or exit 2;
+        close FILE;
+    }
 
     return;
 }
@@ -233,6 +247,10 @@ Successfully end this import job.
 sub ok {
     my ( $class, $imp, $item, $job, $show ) = @_;
     $0 = 'content-importer [bored]';
+
+    # clear "request" cache of db handles to force revalidation in case one we need now
+    # has been idle during a long import
+    $LJ::DBIRole->clear_req_cache();
 
     if ( my $dbh = LJ::get_db_writer() ) {
         $dbh->do(
