@@ -230,8 +230,10 @@
 
         _doEditRequest( formFields );
 
-        console.log(imageMaptoString());
         $(document).trigger("imagecodeupdate", [imageMap]);
+        var evt = new CustomEvent("imagecodereturn", {detail: imageMaptoString()});
+        document.dispatchEvent(evt);
+        $("#js-image-upload .close-reveal-modal" ).click();
     });
 
     // error handler when uploading an image
@@ -353,6 +355,7 @@ ImageUpload.prototype = {
     listenersRegistered: false,
     deregisterListeners: function() {
         $(document).off('keydown.icon-browser');
+        imageMaptoString();
     },
     registerListeners: function() {
         $(document).on('keydown.icon-browser', this.keyboardNav.bind(this));
@@ -444,7 +447,7 @@ $.fn.extend({
 
         return $(this).each(function(){
             var defaults = {
-                triggerSelector: "#image-upload",
+                triggerSelector: "button[value=image]",
                 modalId: "js-image-upload",
                 // focusAfterBrowse: "",
                 // preferences: { metatext: true, smallicons: false, keywordorder: false }

@@ -1239,11 +1239,25 @@ function wrappingItem(tag, label, icon) {
     };
 }
 
+function beforeItem(tag, label, icon) {
+  const value = label.toLowerCase().replace(/ /, "-");
+  const finalIcon = icon || value;
+
+  return {
+      icon: finalIcon,
+      value: value,
+      label: label,
+      action: insertBefore(tag),
+      active: false,
+      enabled: true
+  };
+}
+
 const TextArea = document.querySelector("textarea[name=event]");
 const imageButton = document.getElementById("image-upload");
 
 function insertImage(){
-    imageButton.click()
+    imageButton.click();
 }
 
 function insertAround(startText, endText) {
@@ -1256,7 +1270,24 @@ function insertAround(startText, endText) {
     };
 }
 
-let items = [
+function insertBefore(startText) {
+  return function() {
+  let [start, end] = [TextArea.selectionStart, TextArea.selectionEnd];
+  TextArea.setRangeText(startText, start, start, 'preserve');
+  end = end + startText.length;
+  TextArea.setSelectionRange(start + startText.length, end);
+  };
+}
+
+
+document.addEventListener('imagecodereturn', function(e) {
+  TextArea.focus();
+  let [start, end] = [TextArea.selectionStart, TextArea.selectionEnd];
+  TextArea.setRangeText(e.detail, start, start, 'preserve');
+  TextArea.setSelectionRange(start + e.detail, end);
+});
+
+let plain_items = [
     wrappingItem("b", "Bold"),
     wrappingItem("i", "Italic"),
     wrappingItem("u", "Underline"),
@@ -1277,32 +1308,70 @@ let items = [
       wrappingItem("h6", 'Heading 6', 'heading'),
     ]}];
 
+    let md_items = [
+      wrappingItem("**", "Bold"),
+      wrappingItem("*", "Italic"),
+      wrappingItem("`", "Code", "terminal"),
+      {action: insertBefore("\n- "), label: 'Bullet List', icon: 'list-ul', value: 'bullet-list', enabled: true},
+      beforeItem("\n> ", 'Blockquote', 'quote-left'),
+      {action: insertImage, label: 'Insert image', icon: 'image', value: 'image', enabled: true},
+      {action: insertAround('<a href="">', "</a>"), label: 'Insert link', icon: 'link', value: 'link', enabled: true},
+      {action: insertBefore('@'), label: 'Insert user', icon: 'user', value: 'user', enabled: true },
+      {action: insertAround('<cut text="Read more">', "</cut>"), label: 'Insert cut', icon: 'cut', value: 'cut', enabled: true },
+      {type: 'dropdown', label: 'heading', id: 'heading', items: [
+        {...beforeItem("# ", 'Heading 1', 'heading'), default_item: true},
+        beforeItem("## ", 'Heading 2', 'heading'),
+        beforeItem("### ", 'Heading 3', 'heading'),
+        beforeItem("#### ", 'Heading 4', 'heading'),
+        beforeItem("##### ", 'Heading 5', 'heading'),
+        beforeItem("###### ", 'Heading 6', 'heading'),
+      ]}];
+  
 
 var plainToolbar = null;
 var mdToolbar = null;
 
 function setupPlain() {
-    plainToolbar = new _js_SimpleToolbar__WEBPACK_IMPORTED_MODULE_0__.SimpleToolbar(items, "toolbar", "entry-body");
+    plainToolbar = new _js_SimpleToolbar__WEBPACK_IMPORTED_MODULE_0__.SimpleToolbar(plain_items, "toolbar", "entry-body");
     TextArea.parentNode.insertBefore(plainToolbar.domNode, TextArea);
+}
+
+function setupMd() {
+  mdToolbar = new _js_SimpleToolbar__WEBPACK_IMPORTED_MODULE_0__.SimpleToolbar(md_items, "toolbar", "entry-body");
+  TextArea.parentNode.insertBefore(mdToolbar.domNode, TextArea);
 }
 
 
 // Set up RTE on load if it's set as default format
-if (document.querySelector('#editor').value.includes("html")) {
+if (document.querySelector('#editor').value.includes("html_casual")) {
     setupPlain();
+  } else if (document.querySelector('#editor').value.includes("markdown")){
+    setupMd();
   }
   
   // Watch the format select for changes, and add or destroy the RTE as necessary
   document.querySelector('#editor').addEventListener('change', e => {
     let format = e.target.value;
-    if (format.includes("html") && !plainToolbar) {
+    if (format.includes("html_casual") && !plainToolbar) {
       setupPlain();
     }
-    if (!format.includes("html") && plainToolbar) {
+    if (!format.includes("html_casual") && plainToolbar) {
       plainToolbar.destroy();
       plainToolbar = null;
     }
-  })
+  });
+
+
+  document.querySelector('#editor').addEventListener('change', e => {
+    let format = e.target.value;
+    if (format.includes("markdown") && !mdToolbar) {
+      setupMd();
+    }
+    if (!format.includes("markdown") && mdToolbar) {
+      mdToolbar.destroy();
+      mdToolbar = null;
+    }
+  });
 
 
 /***/ }),
