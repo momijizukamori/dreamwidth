@@ -154,7 +154,7 @@ sub _form_to_backend {
             if defined $post->{$formname};
     }
     $props->{taglist}         = $post->{tags} if defined $post->{tags};
-    $props->{picture_keyword} = $post->{icon} if defined $post->{icon};
+    $props->{picture_keyword} = $post->{icon_keyword} if defined $post->{icon_keyword};
     $props->{opt_backdated} = $post->{entrytime_outoforder} ? 1 : 0;
 
     # FIXME
@@ -451,8 +451,8 @@ sub json_from_entry {
     #print Dumper($item->currents());
 
     my $entry = {};
-    $entry->{subject_html} = $item->subject_html();
-    $entry->{body_html}    = $item->event_html(0);
+    $entry->{subject} = $item->subject_html();
+    $entry->{text}    = $item->event_html(0);
     $entry->{poster}       = {username => $item->poster()->{user}, display_name => $item->poster()->{name}};
     $entry->{url}          = $item->url();
     $entry->{security}     = $item->security();
@@ -466,7 +466,7 @@ sub json_from_entry {
     #$item->{metadata} = $item->currents;
 
     if ( $item->editable_by($remote) ) {
-        $entry->{body_raw}    = $item->event_raw();
+        $entry->{text_raw}    = $item->event_raw();
         $entry->{subject_raw} = $item->subject_raw();
         $entry->{allowmask}   = $item->allowmask;
     }

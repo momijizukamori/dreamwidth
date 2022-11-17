@@ -7,10 +7,7 @@ paths:
         description: The journal you want entry information for
         required: true
         schema:
-          type: string
-          minLength: 3
-          maxLength: 25
-          pattern: "^[0-9A-Za-z_]+$"  
+          &Username
       - name: entry_id
         in: path
         description: The entry id you want information for
@@ -27,43 +24,12 @@ paths:
         403:
           description: You aren't authorized to view that entry.
     post:
-      description: Edit a specified journal entry.
+      description: Edit a specified journal entry. Parameters that aren't supplied will remain unedited.
       requestBody:
         content:
           application/json:
             schema:
-              type: object
-              properties:
-                subject:
-                  type: string
-                  description: Entry subject line
-                text:
-                  type: string
-                  description: Entry text
-                  minLength: 1
-                icon:
-                  type: string
-                  description: Keyword of icon to use
-                datetime:
-                  type: string
-                  description: The date and time of the entry in the format `FIXME`. If omitted, the server time will be used instead.
-                security:
-                  type: string
-                  description: Security level to use. Can be public, private, or a filter name.
-                age_restriction:
-                  type: string
-                  description: Age restriction flag. `none` puts no flags on the entry, `discretion` marks it as "viewer discretion advised", and `restricted` marks it inacessible to users under eighteen. If omitted, the journal default will be used.
-                age_restriction_reason:
-                  type: string
-                  description: A optional description of why you chose the age-restriction setting you did.
-                comment_settings:
-                  type: string
-                  description: Comment settings for the new entry. `nocomments` disables comments, and `noemail` disables notifications. If omitted, the journal default will be used.
-                tags:
-                  description: An array of tags to apply to the entry.
-                  type: array
-                  items:
-                    type: string
+              &EntryParams
       responses:
         204:
           description: The entry has been updated.

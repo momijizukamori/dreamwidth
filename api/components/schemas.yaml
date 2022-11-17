@@ -1,0 +1,45 @@
+$Username:
+  type: string
+  minLength: 3
+  maxLength: 25
+  pattern: "^[0-9A-Za-z_]+$"
+  example: example  
+$Icon:
+  type: object
+  required:
+  - comment
+  - picid
+  - username
+  - url
+  - keywords
+  properties:
+    comment:
+      type: string
+    picid:
+      type: integer
+    username:
+      type: string
+      description: The name of the journal this icon belongs to.
+    url:
+      type: string
+    keywords:
+      type: array
+      items:
+        type: string
+$AccessList:
+  type: object
+  required:
+  - name
+  properties:
+    name:
+      description: The name of the new accesslist.
+      type: string
+      minLength: 1
+    sortorder:
+      description: Sort order for the new accesslist, 0 to 255.
+      type: integer
+      minimum: 0
+      maximum: 255
+    is_public:
+      description: The visibility of the new accesslist. Default is false (private).
+      type: boolean
