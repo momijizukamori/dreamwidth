@@ -7,10 +7,7 @@ paths:
         description: The username you want accesslist information for
         required: true
         schema:
-          type: string
-          minLength: 3
-          maxLength: 25
-          pattern: "^[0-9A-Za-z_]+$"    
+          &Username    
     get:
       description: Returns a list of entry accesslists for the journal
       responses:
@@ -26,22 +23,7 @@ paths:
         content:
           application/json:
             schema:
-              type: object
-              required:
-              - name
-              properties:
-                name:
-                  description: The name of the new accesslist.
-                  type: string
-                  minLength: 1
-                sortorder:
-                  description: Sort order for the new accesslist, 0 to 255.
-                  type: integer
-                  minimum: 0
-                  maximum: 255
-                is_public:
-                  description: The visibility of the new accesslist. Default is false (private).
-                  type: boolean
+              &AcessList
       responses:
         200:
           description: The id of the newly created accesslist.
@@ -61,8 +43,8 @@ paths:
           schema:
             type: integer
       responses:
-        200:
-          description: Success
+        204:
+          description: Successfully deleted accesslist.
         403:
           description: You can't remove that accesslist.
         404:

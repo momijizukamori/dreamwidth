@@ -7,10 +7,7 @@ paths:
         description: The username you want accesslist information for
         required: true
         schema:
-          type: string
-          minLength: 3
-          maxLength: 25
-          pattern: "^[0-9A-Za-z_]+$"    
+          &Username
       - name: accesslistid
         in: path
         description: The id of the accesslist you want information for.
@@ -21,7 +18,13 @@ paths:
       description: Returns a list journals on a given access list.
       responses:
         200:
-          description: A list of journals.
+          description: A list of journals on this accesslist.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  &Username
         403:
           description: You cannot view accesslists on that journal.
         404:
@@ -37,10 +40,7 @@ paths:
             schema:
               type: array
               items: 
-                type: string
-                minLength: 3
-                maxLength: 25
-                pattern: "^[0-9A-Za-z_]+$"    
+                &Username 
       responses:
         200:
           description: The newly updated accesslist.
