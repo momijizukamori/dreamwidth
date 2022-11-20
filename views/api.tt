@@ -1,6 +1,7 @@
 [%- sections.title = "API" -%]
 [%- CALL dw.active_resource_group( "foundation" ) -%]
 		<script type="module" src="http://www.momiji.hack.dreamwidth.net/js/rapidoc-min.js"></script>
+<script type="module" src="https://unpkg.com/openapi-explorer@0/dist/browser/openapi-explorer.min.js"></script>
 [%- dw.need_res( { group => "foundation" },
                  "js/api.js"
                  "js/components/jquery.collapse.js"
@@ -21,3 +22,5 @@ For this API, users are identified with an API key rather than a username and pa
         layout="column"
 		allow-authentication="true"
   > </rapi-doc>
+
+<openapi-explorer spec-url="http://www.momiji.hack.dreamwidth.net/api/v1/spec"> </openapi-explorer>

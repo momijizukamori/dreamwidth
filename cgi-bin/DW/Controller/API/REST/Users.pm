@@ -186,7 +186,7 @@ sub watch_get {
 #
 # Get a list of information about a user
 ################################################
-my $info = DW::Controller::API::REST->path( 'users.yaml', 1, { get => \&info_get } );
+my $info = DW::Controller::API::REST->path( 'journals.yaml', 1, { get => \&info_get } );
 
 sub info_get {
     my ( $self, $args ) = @_;
@@ -201,14 +201,14 @@ sub info_get {
     my $bio              = $user->bio;
     my $last_updated     = LJ::mysql_time( $user->timeupdate );
     my $created          = LJ::mysql_time( $user->timecreate );
-    my $num_received_raw = $user->num_comments_received;
-    my $num_posted_raw   = $user->num_comments_posted;
+    my $num_received_raw = $user->num_comments_received + 0;
+    my $num_posted_raw   = $user->num_comments_posted + 0;
     my $tags_count       = scalar keys %{ $user->tags || {} };
-    my $memories_count   = LJ::Memories::count( $user->id ) || 0;
+    my $memories_count   = LJ::Memories::count( $user->id ) + 0|| 0;
     my $userid           = $user->{userid};
     my $title            = $user->prop("journaltitle") || "";
     my $subtitle         = $user->prop("journalsubtitle") || "";
-    my $entries_count    = $user->number_of_posts;
+    my $entries_count    = $user->number_of_posts + 0;
 
     my $info_hash = {
         account_type      => $type,

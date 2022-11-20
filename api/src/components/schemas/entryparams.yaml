@@ -1,0 +1,24 @@
+type: object
+properties:
+  subject:
+    type: string
+    description: Entry subject line
+    example: My First Post
+  text:
+    type: string
+    description: Entry text
+    minLength: 1
+  icon_keyword:
+    type: string
+    description: Keyword of icon to use
+  datetime:
+    type: string
+    description: The date and time of the entry in the format `FIXME`. If omitted, the server time will be used instead.
+  age_restriction_reason:
+    type: string
+    description: A optional description of why you chose the age-restriction setting you did.
+  tags:
+    description: An array of tags to apply to the entry.
+    type: array
+    items:
+      type: string

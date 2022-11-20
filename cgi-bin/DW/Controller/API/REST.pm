@@ -40,8 +40,7 @@ our %TYPE_REGEX = (
     boolean => '(true|false)',
 );
 our %METHODS  = ( get => 1, post => 1, delete => 1 );
-our $API_PATH = "$ENV{LJHOME}/api/";
-our $SCHEMAS = LoadFile( $API_PATH .'/_components/schemas.yaml' );
+our $API_PATH = "$ENV{LJHOME}/api/dist/";
 
 
 # Usage: path ( yaml_source_path, ver, hash_of_HTTP_handlers )
@@ -338,8 +337,6 @@ sub schema {
     my ($self) = @_;
 
     if ( defined $self->{schema} ) {
-        $self->{schema} = $SCHEMAS->{$self->{schema}} if $self->{schema} =~ /^\$/;
-
         # Make sure we've been provided a valid schema to validate against
         my @errors = validate_json( $self->{schema}, 'http://json-schema.org/draft-07/schema#' );
         croak "Invalid schema! Errors: @errors" if @errors;
