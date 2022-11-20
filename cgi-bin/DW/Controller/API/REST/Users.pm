@@ -204,7 +204,7 @@ sub info_get {
     my $num_received_raw = $user->num_comments_received + 0;
     my $num_posted_raw   = $user->num_comments_posted + 0;
     my $tags_count       = scalar keys %{ $user->tags || {} };
-    my $memories_count   = LJ::Memories::count( $user->id ) + 0|| 0;
+    my $memories_count   = LJ::Memories::count( $user->id ) + 0 || 0;
     my $userid           = $user->{userid};
     my $title            = $user->prop("journaltitle") || "";
     my $subtitle         = $user->prop("journalsubtitle") || "";
