@@ -47,6 +47,7 @@ paths:
                     items:
                       type: string
         "400":
+<<<<<<< 75920b19ad63a43baf6fbfa49791bdf835684586
           description: Bad or missing request parameters.
           content:
             application/json:
@@ -63,3 +64,8 @@ paths:
         "404":
           description: No such username or icon.
           schema: *a1
+=======
+          description: Missing or invalid parameter.
+        "404":
+          description: No such icon.
+>>>>>>> savepoint

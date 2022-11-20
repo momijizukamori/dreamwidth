@@ -1,0 +1,59 @@
+---
+paths:
+  /users/{username}/access:
+    parameters:
+      - name: username
+        in: path
+        description: The journal you want entry information for
+        required: true
+        schema:
+          $ref: ../components/schemas/username.yaml      
+    get:
+      description: Returns a list of journals the username grants read access to.
+      responses:
+        200:
+          description: A list of journal names.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: ../components/schemas/username.yaml  
+        404:
+          $ref: ../components/schemas/404-user.yaml
+    post:
+      description: Grant read access to journals in the `journals` list.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              description: journals to add
+              type: array
+              items:
+                $ref: ../components/schemas/username.yaml  
+      responses:
+        200:
+          description: A list of journal names.
+        403:
+          description: You can't grant access for that username.
+        404:
+          $ref: ../components/schemas/404-user.yaml
+        400:
+          $ref: ../components/schemas/400.yaml
+    delete:
+      description: Remove read access to a journal.
+      parameters:
+        - name: journal
+          in: query
+          description: journal to remove
+          schema:
+            $ref: ../components/schemas/username.yaml    
+      responses:
+        200:
+          description: A list of journal names.
+        403:
+          description: You can't remove access for that username.
+        404:
+          $ref: ../components/schemas/404-user.yaml
+        400:
+          $ref: ../components/schemas/400.yaml

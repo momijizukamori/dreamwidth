@@ -20,4 +20,4 @@ paths:
                 items: 
                   $ref: components/schemas/icon.yaml
         404:
-          $ref: components/errors/404-user.yaml
+          description: No such user.

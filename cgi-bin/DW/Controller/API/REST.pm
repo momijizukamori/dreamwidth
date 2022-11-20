@@ -342,8 +342,6 @@ sub schema {
     my ($self) = @_;
 
     if ( defined $self->{schema} ) {
-        $self->{schema} = $SCHEMAS->{$self->{schema}} if $self->{schema} =~ /^\$/;
-
         # Make sure we've been provided a valid schema to validate against
         my @errors = validate_json( $self->{schema}, 'http://json-schema.org/draft-07/schema#' );
         croak "Invalid schema! Errors: @errors" if @errors;

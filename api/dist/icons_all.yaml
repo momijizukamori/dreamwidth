@@ -43,6 +43,7 @@ paths:
                       items:
                         type: string
         "404":
+<<<<<<< 75920b19ad63a43baf6fbfa49791bdf835684586
           description: Username specified does not exist.
           content:
             application/json:
@@ -55,3 +56,6 @@ paths:
                     example: "Bad format for username. Errors: String is too long: 77/25."
                   success:
                     type: number
+=======
+          description: No such user.
+>>>>>>> savepoint
