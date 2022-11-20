@@ -153,7 +153,7 @@ sub _form_to_backend {
         $props->{$propname} = $post->{$formname}
             if defined $post->{$formname};
     }
-    $props->{taglist}         = $post->{tags} if defined $post->{tags};
+    $props->{taglist}         = $post->{tags}         if defined $post->{tags};
     $props->{picture_keyword} = $post->{icon_keyword} if defined $post->{icon_keyword};
     $props->{opt_backdated} = $post->{entrytime_outoforder} ? 1 : 0;
 
@@ -453,15 +453,16 @@ sub json_from_entry {
     my $entry = {};
     $entry->{subject} = $item->subject_html();
     $entry->{text}    = $item->event_html(0);
-    $entry->{poster}       = {username => $item->poster()->{user}, display_name => $item->poster()->{name}};
-    $entry->{url}          = $item->url();
-    $entry->{security}     = $item->security();
-    $entry->{datetime}     = $item->{eventtime};
+    $entry->{poster} =
+        { username => $item->poster()->{user}, display_name => $item->poster()->{name} };
+    $entry->{url}      = $item->url();
+    $entry->{security} = $item->security();
+    $entry->{datetime} = $item->{eventtime};
     my @entry_tags = $item->tags();
-    $entry->{tags}     = ( \@entry_tags );
+    $entry->{tags}         = ( \@entry_tags );
     $entry->{icon_keyword} = $item->userpic_kw || '(default)';
-    $entry->{icon}     = $item->userpic;
-    $entry->{entry_id} = delete $item->{ditemid};
+    $entry->{icon}         = $item->userpic;
+    $entry->{entry_id}     = delete $item->{ditemid};
 
     #$item->{metadata} = $item->currents;
 

@@ -215,7 +215,8 @@ sub TO_JSON {
     for my $key ( keys %{ $self->{responses} } ) {
         $json->{responses}{$key} = { description => $responses->{$key}{desc} };
         for my $return_type ( keys %{ $self->{responses}{$key}{content} } ) {
-            $json->{responses}{$key}{content}{$return_type}{schema} = $responses->{$key}{content}{$return_type}{schema}
+            $json->{responses}{$key}{content}{$return_type}{schema} =
+                $responses->{$key}{content}{$return_type}{schema}
                 if defined $responses->{$key}{content}{$return_type}{schema};
         }
     }
