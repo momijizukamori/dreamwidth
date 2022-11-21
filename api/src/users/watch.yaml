@@ -1,0 +1,25 @@
+---
+paths:
+  /users/{username}/subscriptions:
+    parameters:
+      - name: username
+        in: path
+        description: The journal you want subscription information for
+        required: true
+        schema:
+          $ref: ../components/schemas/username.yaml      
+    get:
+      description: Returns a list of journals the username subscribes to.
+      responses:
+        200:
+          description: A list of journal names.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: ../components/schemas/username.yaml 
+        404:
+          $ref: ../components/schemas/404-user.yaml 
+        400:
+          $ref: ../components/schemas/400.yaml 
