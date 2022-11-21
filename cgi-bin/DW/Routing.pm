@@ -137,6 +137,8 @@ sub get_call_opts {
     # the version the user is requesting.
     if ( $call_opts->role eq 'api' ) {
 
+        return unless defined( $call_opts->apiver );
+
         # check the static endpoints for this api version first
         if ( exists $api_endpoints{ $call_opts->apiver } ) {
             my $hash = $api_endpoints{ $call_opts->apiver }->{$uri};
@@ -644,6 +646,7 @@ sub register_api_rest_endpoints {
 sub _apply_defaults {
     my ( $opts, $hash ) = @_;
 
+    warn $opts->{methods} if defined $opts->{methods};
     $hash ||= {};
     $opts->{app}  = 1 if !defined $opts->{app} && !$opts->{user} && !$opts->{api};
     $hash->{args} = $opts->{args};
@@ -657,7 +660,7 @@ sub _apply_defaults {
     $formats = { map { ( $_, 1 ) } @$formats } if ref $formats eq 'ARRAY';
 
     $hash->{formats} = $formats;
-    $hash->{methods} = $opts->{methods} || { GET => 1, POST => 1, HEAD => 1 };
+    $hash->{methods} = $opts->{methods} || { GET => 1, POST => 1, HEAD => 1, DELETE => 1 };
 
     return $hash;
 }

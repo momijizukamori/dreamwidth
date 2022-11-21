@@ -1,0 +1,41 @@
+---
+paths:
+  /journals/{username}/entries/{entry_id}:
+    parameters:
+      - name: username
+        in: path
+        description: The journal you want entry information for
+        required: true
+        schema:
+          $ref: components/schemas/username.yaml
+      - name: entry_id
+        in: path
+        description: The entry id you want information for
+        required: true
+        schema:
+          type: integer
+    get:
+      description: Returns a specified entry in a journal.
+      responses:
+        200:
+          description: A single entry
+        404:
+          description: Journal or entry specified does not exist.
+        403:
+          description: You aren't authorized to view that entry.
+    post:
+      description: Edit a specified journal entry. Parameters that aren't supplied will remain unedited.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: components/schemas/entryparams.yaml
+      responses:
+        204:
+          description: The entry has been updated.
+        400:
+          description: Bad input value supplied.
+        404:
+          description: Journal or entry specified does not exist.
+        403:
+          description: You aren't allowed to edit that entry.
