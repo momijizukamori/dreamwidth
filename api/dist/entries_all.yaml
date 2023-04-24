@@ -1,0 +1,100 @@
+paths:
+  "/journals/{username}/entries":
+    parameters:
+      - name: username
+        in: path
+        description: The journal you want entry information for
+        required: true
+        schema:
+          type: string
+          minLength: 3
+          maxLength: 25
+          pattern: ^[0-9A-Za-z_]+$
+          example: example
+    get:
+      description: Returns recent entries for a specified journal, optionally filtered
+        by the extra parameters given.
+      parameters:
+        - name: count
+          in: query
+          description: The number of entries to fetch. FIXME - max
+          schema:
+            type: integer
+            minimum: 0
+        - name: offset
+          in: query
+          description: The offset from the most recent entry to start fetching from.
+          schema:
+            type: integer
+            minimum: 0
+        - name: tag
+          in: query
+          description: The tag to filter fetched entries by
+          schema:
+            type: string
+        - name: poster
+          in: query
+          description: The poster to filter fetched entries by (only valid if journal is a
+            community)
+          schema:
+            type: string
+        - name: security
+          in: query
+          description: The security level to filter fetched entries by
+          schema:
+            type: string
+        - name: full
+          in: query
+          description: Whether to load subject and body text
+          schema:
+            type: boolean
+      responses:
+        "200":
+          description: A list of recent entries.
+        "400":
+          description: Bad parameters
+        "404":
+          description: Journal specified does not exist
+    post:
+      description: Post a new journal entry.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              required:
+                - text
+              type: object
+              properties:
+                subject:
+                  type: string
+                  description: Entry subject line
+                  example: My First Post
+                text:
+                  type: string
+                  description: Entry text
+                  minLength: 1
+                icon_keyword:
+                  type: string
+                  description: Keyword of icon to use
+                datetime:
+                  type: string
+                  description: The date and time of the entry in the format `FIXME`. If omitted,
+                    the server time will be used instead.
+                age_restriction_reason:
+                  type: string
+                  description: A optional description of why you chose the age-restriction setting
+                    you did.
+                tags:
+                  description: An array of tags to apply to the entry.
+                  type: array
+                  items:
+                    type: string
+      responses:
+        "200":
+          description: The new entry in JSON format.
+        "400":
+          description: Bad input value supplied.
+        "403":
+          description: You aren't allowed to post in that journal.
+        "404":
+          description: Journal specified does not exist.

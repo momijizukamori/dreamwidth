@@ -43,15 +43,4 @@ paths:
                       items:
                         type: string
         "404":
-          description: Username specified does not exist.
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  error:
-                    type: string
-                    description: A description of the error encountered.
-                    example: "Bad format for username. Errors: String is too long: 77/25."
-                  success:
-                    type: number
+          description: No such user.

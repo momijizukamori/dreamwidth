@@ -68,10 +68,11 @@ sub param {
 sub body {
     my ( $self, $config ) = @_;
     $self->{requestBody}->{required} = $config->{required};
-    for my $ct ( keys( %{ $config->{content} } ) ) {
+    for my $ct ( keys( $config->{content} ) ) {
         my $param = DW::API::Parameter->define_body( $config->{content}->{$ct}, $ct );
         $self->{requestBody}{content}{$ct} = $param;
     }
+
 }
 
 # Usage: success ( desc, schema )
