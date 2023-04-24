@@ -617,7 +617,8 @@ sub compose_handler {
         folder_html   => render_folders($remote),
         commafy       => \&LJ::commafy,
         remote        => $remote,
-        msg_limit     => $msg_limit
+        msg_limit     => $msg_limit,
+        force         => $force
     };
 
     return DW::Template->render_template( 'inbox/compose.tt', $vars );

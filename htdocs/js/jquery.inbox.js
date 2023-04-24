@@ -102,6 +102,9 @@ function mark_items(e, action, qid) {
     var collapsed = $( ".item_unread .inbox_collapse" ).map(function() {
       return this.id;
     }).get();
+
+    // Same thing when we redraw the folders list
+    var folder_expanded = $('#folder_list').hasClass("folder_expanded");
     
     // Grab param data from the hidden fields
     var auth_token = $("[name=lj_form_auth]").val();
@@ -136,6 +139,9 @@ function mark_items(e, action, qid) {
                     });
                     $("#" + id).addClass('inbox_collapse');
                 });
+                if (folder_expanded) {
+                    toggleFolder();
+                }
             } else {
                 $(e.target).ajaxtip()
                     .ajaxtip("error", data.error);
@@ -160,9 +166,10 @@ if ($('#msg_to').length) {
 }
 $('.folders').removeClass('no-js');
 $("#folder_btn").removeClass('no-js');
-$("#folder_btn").click(function(){
+
+function toggleFolder() {
     var folders = $('#folder_list');
-    var img = $(this).children();
+    var img = $("#folder_btn").children("img");
 
     if (folders.hasClass('folder_collapsed')) {
         folders.removeClass('folder_collapsed');
@@ -182,7 +189,8 @@ $("#folder_btn").click(function(){
             'title': 'Expand'
         });
     }
-});
+}
+$("#inbox_folders").on("click", "#folder_btn", toggleFolder);
 
 // Nothing is selected, show 'Mark all read' and 'Delete all' buttons
 function none_selected() {

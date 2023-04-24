@@ -262,7 +262,14 @@
 
 #compose .pkg {
   display: grid;
-  grid-template-columns: auto 1fr;
+  grid:
+      "label input" auto
+      "blank error" auto
+      / auto 1fr;
+
+  small.error {
+  grid-area: error;
+  }
 }
 
 .qr-icon a,

@@ -38,7 +38,7 @@
         [% reply_u.ljuser_display %]
         [% form.hidden( 'name' = 'msg_to', 'value' = reply_u.username) %]
     [% ELSE %]
-        [% form.textbox( 'name' = 'msg_to', size = 15, id = 'msg_to', value = msg_to, autocomplete = 'off', class='inline') %]
+        [% form.textbox( 'name' = 'msg_to', size = 15, id = 'msg_to', autocomplete = 'off', class='inline') %]
     [% END %]
 
     [% form.hidden( name = 'force', value = force, id = 'force') %]
