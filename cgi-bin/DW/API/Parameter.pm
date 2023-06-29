@@ -20,6 +20,7 @@ package DW::API::Parameter;
 use strict;
 use warnings;
 use JSON;
+use Data::Dumper;
 
 use Carp qw(croak);
 
@@ -77,6 +78,9 @@ sub define_body {
 sub _validate_json {
     my $self = $_[0];
 
+    # for my $field (@REQ_ATTRIBUTES) {
+    #     croak "$self is missing required field $field" unless defined $self->{$field};
+    # }
     my $location = $self->{in};
     croak "$location isn't a valid parameter location" unless grep( $location, @LOCATIONS );
 

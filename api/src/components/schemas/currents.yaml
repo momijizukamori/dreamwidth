@@ -1,0 +1,14 @@
+type: object
+properties:
+  location:
+    type: string
+    description: Location associated with a post. Does not have to be a real location.
+    example: The Moon
+  music:
+    type: string
+    description: Music associated with a post.
+    example: Frank Sinatra - Fly Me To The Moon
+  mood:
+    type: string
+    description: Mood associated with a post. If it matches a mood icon, that icon will be displayed.
+    example: quixotic

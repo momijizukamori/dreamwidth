@@ -21,7 +21,7 @@ paths:
       description: Returns a single icon for a specified picid and username
       responses:
         "200":
-          description: An icon with its information
+          description: An icon with it's information
           content:
             application/json:
               schema:
@@ -47,19 +47,6 @@ paths:
                     items:
                       type: string
         "400":
-          description: Bad or missing request parameters.
-          content:
-            application/json:
-              schema:
-                &a1
-                type: object
-                properties:
-                  error:
-                    type: string
-                    description: A description of the error encountered.
-                    example: "Bad format for username. Errors: String is too long: 77/25."
-                  success:
-                    type: number
+          description: Missing or invalid parameter.
         "404":
-          description: No such username or icon.
-          schema: *a1
+          description: No such icon.
