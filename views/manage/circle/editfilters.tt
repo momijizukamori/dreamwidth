@@ -2,6 +2,7 @@
 [%- sections.head = BLOCK %]
     <style type="text/css">
     .edit-bar {display: flex;}
+    .no-js {display: none;}
     </style>
 [% END %]
 [%- CALL dw.active_resource_group( "foundation" ) -%]
@@ -64,11 +65,10 @@
         name = "select_group"
         id = "select_group"
         value = dw.ml('.btn.edit')
-        class = "no-js button"
     ) %]
     </div>
 
-    <div class="[% "only-js" UNLESS current_group %]">
+    <div class="[% "no-js" UNLESS current_group %]" id="edit_members">
     [% INCLUDE "components/checkbox-multiselect.tt" 
         items => trusted_us 
         label => "Group Members" 

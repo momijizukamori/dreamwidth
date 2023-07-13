@@ -34,6 +34,10 @@ DW::Routing->register_string( '/shop/icons',          \&shop_icons_handler,     
 DW::Routing->register_string( '/shop/transferpoints', \&shop_transfer_points_handler,  app => 1 );
 DW::Routing->register_string( '/shop/refundtopoints', \&shop_refund_to_points_handler, app => 1 );
 DW::Routing->register_string( '/shop/receipt',        \&shop_receipt_handler,          app => 1 );
+DW::Routing->register_string( '/shop/checkout',       \&shop_checkout_handler,         app => 1 );
+DW::Routing->register_string( '/shop/history',        \&shop_history_handler,          app => 1 );
+DW::Routing->register_string( '/shop/cancel',         \&shop_cancel_handler,           app => 1 );
+DW::Routing->register_string( '/shop/cart',           \&shop_cart_handler,             app => 1 );
 
 # our basic shop controller, this does setup that is unique to all shop
 # pages and everybody should call this first.  returns the same tuple as
@@ -498,6 +502,163 @@ sub shop_receipt_handler {
     $vars->{carttable} = LJ::Widget::ShopCart->render( receipt => 1, cart => $cart );
 
     return DW::Template->render_template( 'shop/receipt.tt', $vars );
+}
+
+# handles the shop checkout page
+sub shop_checkout_handler {
+    my ( $ok, $rv ) = _shop_controller( anonymous => 1 );
+    return $rv unless $ok;
+
+    my $cart  = $rv->{cart};
+    my $r     = DW::Request->get;
+    my $GET   = $r->get_args;
+    my $scope = 'shop/checkout.tt';
+
+    return error_ml("$scope.error.nocart") unless $cart;
+    return error_ml("$scope.error.emptycart") unless $cart->has_items;
+
+    # FIXME: if they have a $0 cart, we don't support that yet
+    return error_ml("$scope.error.zerocart")
+        if $cart->total_cash == 0.00 && $cart->total_points == 0;
+
+    # establish the engine they're trying to use
+    my $eng = DW::Shop::Engine->get( $GET->{method}, $cart );
+    return error_ml("$scope.error.invalidpaymentmethod")
+        unless $eng;
+
+    # set the payment method on the cart
+    $cart->paymentmethod( $GET->{method} );
+
+    # redirect to checkout url
+    my $url = $eng->checkout_url;
+    return $eng->errstr
+        unless $url;
+    return $r->redirect($url);
+
+}
+
+sub shop_history_handler {
+    my ( $ok, $rv ) = _shop_controller();
+    return $rv unless $ok;
+
+    my $cart   = $rv->{cart};
+    my $r      = DW::Request->get;
+    my $remote = $rv->{remote};
+
+    my @carts    = DW::Shop::Cart->get_all( $remote, finished => 1 );
+    my @cartrows = map { $_->{date} => DateTime->from_epoch( epoch => $_->starttime ) } @carts;
+
+    return DW::Template->render_template( 'shop/history.tt', { carts => \@carts } );
+}
+
+# handles the shop cancel page
+sub shop_cancel_handler {
+    my ( $ok, $rv ) = _shop_controller( anonymous => 1 );
+    return $rv unless $ok;
+
+    my $r     = DW::Request->get;
+    my $GET   = $r->get_args;
+    my $scope = 'shop/cancel.tt';
+
+    my ( $ordernum, $token, $payerid ) = ( $GET->{ordernum}, $GET->{token}, $GET->{PayerID} );
+    my ( $cart, $eng );
+
+    # use ordernum if we have it, otherwise use token/payerid
+    if ($ordernum) {
+        $cart = DW::Shop::Cart->get_from_ordernum($ordernum);
+        return error_ml("$scope.error.invalidordernum")
+            unless $cart;
+
+        my $paymentmethod = $cart->paymentmethod;
+        my $paymentmethod_class =
+            'DW::Shop::Engine::' . $DW::Shop::PAYMENTMETHODS{$paymentmethod}->{class};
+        $eng = $paymentmethod_class->new_from_cart($cart);
+        return error_ml("$scope.error.invalidcart")
+            unless $eng;
+    }
+    else {
+        return error_ml("$scope'.error.needtoken")
+            unless $token;
+
+        # we can assume paypal is the engine if we have a token
+        $eng = DW::Shop::Engine::PayPal->new_from_token($token);
+        return error_ml("$scope'.error.invalidtoken")
+            unless $eng;
+
+        $cart     = $eng->cart;
+        $ordernum = $cart->ordernum;
+    }
+
+    # cart must be in open state
+    return $r->redirect("$LJ::SITEROOT/shop/receipt?ordernum=$ordernum")
+        unless $cart->state == $DW::Shop::STATE_OPEN;
+
+    # cancel payment and discard cart
+    if ( $eng->cancel_order ) {
+        return $r->redirect("$LJ::SITEROOT/shop?newcart=1");
+    }
+
+    return error_ml("$scope.error.cantcancel");
+
+}
+
+# Allows for viewing and manipulating the shopping cart.
+sub shop_cart_handler {
+    my ( $ok, $rv ) = _shop_controller( anonymous => 1 );
+    return $rv unless $ok;
+
+    my $cart   = $rv->{cart};
+    my $r      = DW::Request->get;
+    my $remote = $rv->{remote};
+    my $GET    = $r->get_args;
+    my $POST   = $r->post_args;
+
+    my $vars = {
+        duplicate   => $GET->{duplicate},
+        failed      => $GET->{failed},
+        cart_widget => LJ::Widget::ShopCart->render
+    };
+
+    if ( $r->did_post() ) {
+        my %from_post = LJ::Widget->handle_post( $POST, ('ShopCart') );
+        $vars->{error} = $from_post{error} if $from_post{error};
+
+    }
+    return DW::Template->render_template( 'shop/cart.tt', $vars );
+}
+
+# Gives a person a random active free user that they can choose to purchase a
+# paid account for.
+sub shop_randomgift_handler {
+    my ( $ok, $rv ) = _shop_controller( anonymous => 1 );
+    return $rv unless $ok;
+
+    my $r      = DW::Request->get;
+    my $remote = $rv->{remote};
+    my $GET    = $r->get_args;
+    my $POST   = $r->post_args;
+
+    my $type = $GET->{type};
+    $type = 'P' unless $type eq 'C';
+    my $othertype = $type eq 'P' ? 'C' : 'P';
+
+    if ( $r->did_post() ) {
+        my $username = $POST->{username};
+        my $u        = LJ::load_user($username);
+        if ( LJ::isu($u) ) {
+            return $r->redirect("$LJ::SITEROOT/shop/account?for=random&user=$username");
+        }
+    }
+
+    my $randomu = DW::Pay::get_random_active_free_user($type);
+
+    my $vars = {
+        type       => $type,
+        othertype  => $othertype,
+        randomu    => $randomu,
+        mysql_time => \&LJ::mysql_time
+    };
+    return DW::Template->render_template( 'shop/randomgift.tt', $vars );
 }
 
 1;

@@ -62,3 +62,5 @@ function handle_post(data, success, evt) {
     evt.preventDefault();
     evt.stopPropagation();
 }
+
+$('#edit_members').removeClass('no-js');
