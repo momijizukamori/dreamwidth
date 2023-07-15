@@ -1,4 +1,5 @@
 [% sections.title =  dw.ml( '.title' ) %]
+[%- CALL dw.active_resource_group( "foundation" ) -%]
 
 <p><a href='[% site.root %]/shop'>&lt;&lt; [% dw.ml('.backlink') %]</a> &bull; <a href='[% site.root %]/shop/gifts'>[% dw.ml('.gift') %]</a></p>
 
@@ -20,6 +21,6 @@
     <div class='shop-error error-box'>[% error %]</div>"
 [% END %]
 
-[% cart_widget]
+[% cart_widget %]
 
 <p><a href='[% site.root %]/shop'>&lt;&lt; [% dw.ml('.backlink') %]</a> &bull; <a href='[% site.root %]/shop/gifts'>[% dw.ml('.gift') %]</a></p>

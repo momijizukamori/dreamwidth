@@ -23,6 +23,16 @@
     }
 }
 
+.highlight-box {
+    background-color: $highlight-color;
+    color: $highlight-text-color;
+    border: 1px solid;
+    border-color: $highlight-border;
+    display: block;
+    padding: 5px;
+    text-align: center;
+}
+
 .searchhighlight {
         background-color: $highlight-color;
         color: $highlight-text-color;

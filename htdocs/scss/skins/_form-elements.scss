@@ -3,7 +3,7 @@
 */
 
 // make .submit act the same as a .button
-.submit {
+.submit, input[type=button], input[type=submit] {
   @include button-base;
   @include button-size;
   @include button-style;

@@ -38,6 +38,8 @@ DW::Routing->register_string( '/shop/checkout',       \&shop_checkout_handler,  
 DW::Routing->register_string( '/shop/history',        \&shop_history_handler,          app => 1 );
 DW::Routing->register_string( '/shop/cancel',         \&shop_cancel_handler,           app => 1 );
 DW::Routing->register_string( '/shop/cart',           \&shop_cart_handler,             app => 1 );
+DW::Routing->register_string( '/shop/randomgift',     \&shop_randomgift_handler,       app => 1 );
+DW::Routing->register_string( '/shop/renames',        \&shop_renames_handler,          app => 1 );
 
 # our basic shop controller, this does setup that is unique to all shop
 # pages and everybody should call this first.  returns the same tuple as
@@ -658,6 +660,153 @@ sub shop_randomgift_handler {
         randomu    => $randomu,
         mysql_time => \&LJ::mysql_time
     };
+    return DW::Template->render_template( 'shop/randomgift.tt', $vars );
+}
+
+# This is the page where a person can choose to buy a rename token for themselves or for another user.
+sub shop_renames_handler {
+    my ( $ok, $rv ) = _shop_controller( anonymous => 1 );
+    return $rv unless $ok;
+
+    my $r      = DW::Request->get;
+    my $remote = $rv->{remote};
+    my $GET    = $r->get_args;
+    my $POST   = $r->post_args;
+
+    return $r->redirect("$LJ::SITEROOT/shop")
+        unless exists $LJ::SHOP{rename};
+
+    # let's see what they're trying to do
+    my $for = $GET->{for};
+    return $r->redirect("$LJ::SITEROOT/shop")
+        unless $for && $for =~ /^(?:self|gift)$/;
+
+    # ensure they have a user if it's for self
+    return error_ml('/shop/renames.tt.error.invalidself')
+        if $for eq 'self' && ( !$remote || !$remote->is_personal );
+
+    my $vars = {
+        'for'        => $for,
+        user         => $GET->{user},
+        remote       => $remote,
+        cart_display => $rv->{cart_display},
+        date         => DateTime->today->date
+    };
+
+    if ( $r->did_post ) {
+        my $error;
+        my $post_fields = LJ::Widget::ShopItemOptions->post_fields($POST);
+
+     # need to do this because all of these form fields are in the BML page instead of in the widget
+        LJ::Widget->use_specific_form_fields(
+            post   => $POST,
+            widget => "ShopItemOptions",
+            fields => [
+                qw( item for username deliverydate_mm deliverydate_dd deliverydate_yyyy anonymous )]
+        );
+        my %from_post = LJ::Widget->handle_post( $POST, ('ShopItemOptions') );
+        $error = $from_post{error} if $from_post{error};
+
+        if ($error) {
+            $vars->{error} = $error;
+        }
+        else {
+            return $r->redirect("$LJ::SITEROOT/shop");
+        }
+    }
+
+    return DW::Template->render_template( 'shop/renames.tt', $vars );
+}
+
+# The page used to confirm a user's order before we finally bill them.
+sub shop_confirm_handler {
+    my ( $ok, $rv ) = _shop_controller( anonymous => 1 );
+    return $rv unless $ok;
+
+    my $r      = DW::Request->get;
+    my $remote = $rv->{remote};
+    my $GET    = $r->get_args;
+    my $POST   = $r->post_args;
+    my $vars;
+
+    my $scope = "/shop/confirm.tt";
+
+    my ( $ordernum, $token, $payerid ) = ( $GET->{ordernum}, $GET->{token}, $GET->{PayerID} );
+    my ( $cart, $eng, $paymentmethod );
+
+    # use ordernum if we have it, otherwise use token/payerid
+    if ($ordernum) {
+        $cart = DW::Shop::Cart->get_from_ordernum($ordernum);
+        return error_ml("$scope.error.invalidordernum")
+            unless $cart;
+
+        $paymentmethod = $cart->paymentmethod;
+        my $paymentmethod_class =
+            'DW::Shop::Engine::' . $DW::Shop::PAYMENTMETHODS{$paymentmethod}->{class};
+        $eng = $paymentmethod_class->new_from_cart($cart);
+        return error_ml("$scope.error.invalidcart")
+            unless $eng;
+    }
+    else {
+        return error_ml("$scope.error.needtoken")
+            unless $token;
+
+        # we can assume paypal is the engine if we have a token
+        $eng = DW::Shop::Engine::PayPal->new_from_token($token);
+        return error_ml("$scope.error.invalidtoken")
+            unless $eng;
+
+        $cart          = $eng->cart;
+        $ordernum      = $cart->ordernum;
+        $paymentmethod = $cart->paymentmethod;
+    }
+
+    # cart must be in open/checkout state
+    return $r->redirect("$LJ::SITEROOT/shop/receipt?ordernum=$ordernum")
+        unless $cart->state == $DW::Shop::STATE_OPEN || $cart->state == $DW::Shop::STATE_CHECKOUT;
+
+    # check email early so we can re-render the form on error
+    my ( $email_checkbox, @email_errors );
+    if ( $r->did_post && !$cart->userid ) {
+        LJ::check_email( $POST->{email}, \@email_errors, $POST, \$email_checkbox );
+    }
+
+    if ( $r->did_post && !@email_errors ) {
+        if ( $cart->userid ) {
+            my $u = LJ::load_userid( $cart->userid );
+            $cart->email( $u->email_raw );
+        }
+        else {
+            # email checked above
+            $cart->email( $POST->{email} );
+        }
+
+        # and now set the state, we're waiting for the user to send us money
+        $cart->state($DW::Shop::STATE_CHECKOUT);
+
+        # they want to pay us, yippee!
+        my $confirm = $eng->confirm_order;
+        return $eng->errstr
+            unless $confirm;
+        $vars->{confirm} = $confirm;
+
+    }
+
+    if ( !$r->did_post() || @email_errors ) {
+
+        # set the payerid for later
+        $eng->payerid($payerid)
+            if $payerid;
+    }
+
+    $vars->{showform}      = ( !$r->did_post || @email_errors );
+    $vars->{email_errors}  = \@email_errors;
+    $vars->{cart}          = $cart;
+    $vars->{ordernum}      = $ordernum;
+    $vars->{email}         = $POST->{email};
+    $vars->{widget}        = LJ::Widget::ShopCart->render( confirm => 1, cart => $cart );
+    $vars->{paymentmethod} = $paymentmethod;
+
     return DW::Template->render_template( 'shop/randomgift.tt', $vars );
 }
 

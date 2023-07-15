@@ -1,9 +1,10 @@
 [% sections.title =  dw.ml( ".title.$type" ) %]
+[%- CALL dw.active_resource_group( "foundation" ) -%]
 
 <p><a href='[% site.root %]/shop'>&lt;&lt; [% dw.ml( '.backlink', { sitename => site.nameshort } ) %]</a></p>
 
 [% IF randomu %]
-    <p>[% dw.ml( '.intro.'.$type, { aopts => "href='${site.root}/shop/randomgift?type=$type'", aopts2 => "href='${site.root}/shop/account?for=random'" } )  %]</p>
+    <p>[% dw.ml( ".intro.$type", { aopts => "href='${site.root}/shop/randomgift?type=$type'", aopts2 => "href='${site.root}/shop/account?for=random'" } )  %]</p>
     <p><strong>[% dw.ml('.label.username') %]</strong> [% randomu.ljuser_display %]<br />
     <strong>[% dw.ml('.label.createdate') %]</strong>[% mysql_time( randomu.timecreate ) %]<br />
     <strong>[% dw.ml('.label.lastupdated') %]</strong>[% mysql_time( randomu.timeupdate ).substr( 0, 10 ) %]<br />
