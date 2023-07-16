@@ -1,0 +1,105 @@
+[% sections.title =  dw.ml( ".title" ) %]
+<p><a href='$LJ::SITEROOT/shop'>&lt;&lt; [% dw.ml( '.backlink', { sitename => site.nameshort } ) %]</a></p>
+
+[% cart_display %]
+    [% IF prem_convert %]
+           <div class="error-box">
+            [% dw.ml( '.error.premiumconvert', ml_args) %]
+            [% dw.ml( '.error.premiumconvert.postdate', ml_args ) IF ml_args.date %]
+            </div>
+[% END %]
+
+    [% IF for == 'self' %]
+        <div class='leftybox'>[% dw.ml( '.intro.self', { user => remote.ljuser_display, aopts => "href='$LJ::HELPURL{paidaccountinfo}'" } ) %]</div>
+        [% paid_status %]
+    [% ELSIF for.size > 0 %]
+        <p>[% dw.ml( ".intro.$for", { aopts => "href='$LJ::HELPURL{paidaccountinfo}'" } ) %]</p>
+    [% END %]
+
+
+
+    <div style='clear: both;'></div>
+    <form method='post'>
+    [% dw.form_auth() %]
+    <table summary='' class='shop-table'><tr>
+    <td>" . LJ::Widget::ShopItemOptions->render( option_name => 'accttype', item => 'prem', post => $post_fields ) %]</td>
+    <td>" . LJ::Widget::ShopItemOptions->render( option_name => 'accttype', item => 'paid', post => $post_fields ) %]</td>"
+        if $for ne 'self' || DW::Shop::Item::Account->allow_account_conversion( $remote, 'paid' );
+    </tr>
+
+   [% IF perm_avail %]
+        <tr><td colspan='2'>
+        $ret .= LJ::Widget::ShopItemOptions->render( option_name => 'accttype', item => 'seed', post => $post_fields );
+        </td></tr>
+    [% END %]
+
+    </table>
+	<table summary='' class='shop-table-gift'>
+
+    [% IF for && ! for == 'self' %]
+        [% IF for == 'gift' %]
+            <tr><td>[% dw.ml('.giftfor.username') %]</td><td>[% form.textbox( name => 'username' ) %]</td></tr>
+        [% ELSIF for == 'random' %]
+            [% IF randomu %]
+                <tr><td>[% dw.ml('.giftfor.username') %]</td><td><strong>[% randomu.ljuser_display %]</strong></td></tr>
+                [% form.hidden( name = 'username', value = randomu.user ) %]
+            [% ELSE %]
+                <tr><td>[% dw.ml('.giftfor.username') %]</td><td><strong>[% dw.ml('.giftfor.username.random') %]</strong></td></tr>
+                [% form.hidden( name = 'username', value = '(random)' ) %]
+            [% END %]
+        [% ELSE %]
+            <tr><td>[% dw.ml('.giftfor.email') %]</td><td>[% form.textbox( name => 'email' ) %]
+            <br />
+            [% email_checkbox %]
+            </td></tr>
+        [% END %]
+    [% END %]
+
+	<tr><td>[% dw.ml('.giftfor.deliverydate') %]</td>
+	my $deliverydate = $POST{deliverydate_mm} && $POST{deliverydate_dd} && $POST{deliverydate_yyyy}
+				? sprintf( '%04d-%02d-%02d', $POST{deliverydate_yyyy}, $POST{deliverydate_mm}, $POST{deliverydate_dd} )
+				: DateTime->today->date;
+	<td>" . LJ::html_datetime( {
+		name => 'deliverydate',
+		default => $deliverydate,
+		notime => 1,
+	} ) </td></tr>
+
+[% IF for && ! for == 'self' %]
+    <tr><td>[% dw.ml('.giftfor.anonymous') %]</td>
+    <td>[% form.checkbox(
+        name => 'anonymous',
+        value => 1,
+        disabled => (remote ? 0 : 1),
+        selected => $formdata.anonymous || ! remote,
+    ) %]</td></tr>
+
+
+    [% IF acct_reason %]
+        <tr><td>[% dw.ml('.giftfor.reason') %]</td><td>
+        [% form.textarea(
+                                    name => 'reason',
+                                    rows => 6,
+                                    cols => 60,
+                                    wrap => 'soft'
+                                 ) %]
+        </td></tr>
+    [% END %]
+
+[% END %]
+
+	</table>
+
+    [% IF prem_convert %]
+		<p>
+		[% form.checkbox(  name => 'prem_convert', id => 'prem_convert', value => 1 ) %]
+		<label for='prem_convert'>[% dw.ml('.premiumconvert.agree') %]</label>
+		</p>
+	[% END %]
+
+    [% form.hidden( name = 'for', value = for ) %]
+    [% form.hidden( name = 'alreadyposted' value = 1 ) IF did_post %]
+    <p>[% form.submit( value = dw.ml('.btn.addtocart') ) %]</p>
+    </form>
+
+    <p><a href='$LJ::SITEROOT/shop'>&lt;&lt; [% dw.ml( '.backlink', { sitename => site.nameshort } ) %]</a></p>

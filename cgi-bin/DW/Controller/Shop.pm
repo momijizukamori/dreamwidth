@@ -40,6 +40,8 @@ DW::Routing->register_string( '/shop/cancel',         \&shop_cancel_handler,    
 DW::Routing->register_string( '/shop/cart',           \&shop_cart_handler,             app => 1 );
 DW::Routing->register_string( '/shop/randomgift',     \&shop_randomgift_handler,       app => 1 );
 DW::Routing->register_string( '/shop/renames',        \&shop_renames_handler,          app => 1 );
+DW::Routing->register_string( '/shop/gifts',          \&shop_gifts_handler,            app => 1 );
+DW::Routing->register_string( '/shop/account',        \&shop_account_handler,          app => 1 );
 
 # our basic shop controller, this does setup that is unique to all shop
 # pages and everybody should call this first.  returns the same tuple as
@@ -64,7 +66,7 @@ sub _shop_controller {
 
     # the entire shop uses these files
     LJ::need_res('stc/shop.css');
-    LJ::set_active_resource_group('jquery');
+    LJ::set_active_resource_group('foundation');
 
     # figure out what shop/cart to use
     $rv->{shop} = DW::Shop->get;
@@ -807,7 +809,190 @@ sub shop_confirm_handler {
     $vars->{widget}        = LJ::Widget::ShopCart->render( confirm => 1, cart => $cart );
     $vars->{paymentmethod} = $paymentmethod;
 
-    return DW::Template->render_template( 'shop/randomgift.tt', $vars );
+    return DW::Template->render_template( 'shop/confirm.tt', $vars );
+}
+
+# Provides a list of users in your Circle who might want a paid account.
+sub shop_gifts_handler {
+    my ( $ok, $rv ) = _shop_controller( anonymous => 1 );
+    return $rv unless $ok;
+
+    my $r      = DW::Request->get;
+    my $remote = $rv->{remote};
+
+    my ( @free, @expired, @expiring, @paid, @seed );
+
+    my $circle = LJ::load_userids( $remote->circle_userids );
+
+    foreach my $target ( values %$circle ) {
+
+        if ( ( $target->is_person || $target->is_community ) && $target->is_visible ) {
+            my $paidstatus = DW::Pay::get_paid_status($target);
+
+            # account was never paid if it has no paidstatus row:
+            push @free, $target unless defined $paidstatus;
+
+            if ( defined $paidstatus ) {
+                if ( $paidstatus->{permanent} ) {
+                    push @seed, $target unless $target->is_official;
+                }
+                else {
+                    # account is expired if the expiration date has passed:
+                    push @expired, $target unless $paidstatus->{expiresin} > 0;
+
+                    # account is expiring soon if the expiration time is
+                    # within the next month:
+                    push @expiring, $target
+                        if $paidstatus->{expiresin} < 2592000
+                        && $paidstatus->{expiresin} > 0;
+
+                    # account is expiring in more than one month:
+                    push @paid, $target if $paidstatus->{expiresin} >= 2592000;
+                }
+            }
+        }
+    }
+
+    # now that we have the lists, sort them alphabetically by display name:
+    my $display_sort = sub { $a->display_name cmp $b->display_name };
+    @free     = sort $display_sort @free;
+    @expired  = sort $display_sort @expired;
+    @expiring = sort $display_sort @expiring;
+    @paid     = sort $display_sort @paid;
+    @seed     = sort $display_sort @seed;
+
+    # build a list of free users in the circle, formatted with
+    # the display username and a buy-a-gift link:
+    # sort into two lists depending on whether it's a personal or community account
+    my ( @freeusers, @freecommunities );
+    foreach my $person (@free) {
+        if ( $person->is_personal ) {
+            push( @freeusers, $person );
+        }
+        else {
+            push( @freecommunities, $person );
+        }
+    }
+
+    my $vars = {
+        remote          => $remote,
+        freeusers       => \@freeusers,
+        freecommunities => \@freecommunities,
+        expusers        => \@expiring,
+        lapsedusers     => \@expired,
+        paidusers       => \@paid,
+        seedusers       => \@seed,
+    };
+
+    return DW::Template->render_template( 'shop/gifts.tt', $vars );
+}
+
+# This is the page where a person can choose to buy a paid account for
+# themself, another user, or a new user.
+sub shop_account_handler {
+    my ( $ok, $rv ) = _shop_controller( anonymous => 1 );
+    return $rv unless $ok;
+
+    my $r      = DW::Request->get;
+    my $remote = $rv->{remote};
+    my $GET    = $r->get_args;
+    my $POST   = $r->post_args;
+    my $vars;
+
+    my $scope = "/shop/account.tt";
+
+    # let's see what they're trying to do
+    my $for = $GET->{for};
+    return $r->redirect("$LJ::SITEROOT/shop")
+        unless $for && $for =~ /^(?:self|gift|new|random)$/;
+
+    return error_ml("$scope.error.invalidself")
+        if $for eq 'self' && ( !$remote || !$remote->is_personal );
+
+    my $account_type = DW::Pay::get_account_type($remote);
+    return error_ml("$scope.error.invalidself.perm")
+        if $for eq 'self' && $account_type eq 'seed';
+
+    my $post_fields = {};
+    my $email_checkbox;
+    my $premium_convert;
+
+    if ( $for eq 'random' ) {
+        if ( my $username = LJ::ehtml( $GET->{user} ) ) {
+            my $randomu = LJ::load_user($username);
+            if ( LJ::isu($randomu) ) {
+                $vars->{randomu} = $randomu;
+            }
+            else {
+                return $r->redirect("$LJ::SITEROOT/shop");
+            }
+        }
+    }
+
+    if ( $for eq 'self' ) {
+        $vars->{paid_status} = DW::Widget::PaidAccountStatus->render;
+    }
+
+    if ( $r->did_post ) {
+        my $error;
+        my %from_post;
+
+        $post_fields = LJ::Widget::ShopItemOptions->post_fields($POST);
+
+        if ( keys %$post_fields ) {    # make sure the user selected an account type
+             # need to do this because all of these form fields are in the BML page instead of in the widget
+            LJ::Widget->use_specific_form_fields(
+                post   => $POST,
+                widget => "ShopItemOptions",
+                fields => [
+                    qw( for username email deliverydate_mm deliverydate_dd deliverydate_yyyy anonymous reason alreadyposted force_spelling prem_convert )
+                ]
+            );
+
+            @BMLCodeBlock::errors = ();    # LJ::Widget->handle_post uses this global variable
+            eval {
+                %from_post = LJ::Widget->handle_post( $POST,
+                    'ShopItemOptions' => { email_checkbox => \$email_checkbox } );
+            };
+
+            my @errs = map { LJ::ehtml($_) } split "\n", $BMLCodeBlock::errors[0] // '';
+            push @errs, $@ if $@;
+            if ( $from_post{error} && ( !@errs || $from_post{error} ne 'premium_convert' ) ) {
+                push @errs, $from_post{error};
+            }
+            $error = join "<br>", @errs;
+
+        }
+        else {
+            $error = LJ::Lang::ml('.error.noselection');
+        }
+
+        if ( $error eq 'premium_convert' ) {
+            $premium_convert = 1;
+
+            my $ml_args = $from_post{ml_args};
+            $vars->{ml_args} = $ml_args;
+
+        }
+        elsif ($error) {
+            $vars->{errors} = $error;
+        }
+        else {
+            return $r->redirect("$LJ::SITEROOT/shop");
+        }
+    }
+
+    $vars->{for}             = $for;
+    $vars->{remote}          = $remote;
+    $vars->{cart_display}    = $rv->{cart_display};
+    $vars->{perm_avail}      = DW::Pay::num_permanent_accounts_available() > 0;
+    $vars->{formdata}        = $POST || { username => $GET->{user}, anonymous => };
+    $vars->{did_post}        = $r->did_post;
+    $vars->{acct_reason}     = DW::Shop::Item::Account->can_have_reason;
+    $vars->{premium_convert} = $premium_convert;
+    $vars->{email_checkbox}  = $email_checkbox;
+
+    return DW::Template->render_template( 'shop/account.tt', $vars );
 }
 
 1;
