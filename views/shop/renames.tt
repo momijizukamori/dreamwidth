@@ -1,5 +1,14 @@
 [% sections.title =  dw.ml( ".title" ) %]
-[%- CALL dw.active_resource_group( "foundation" ) -%]
+[%- dw.need_res( { group => "foundation" },
+    ## date
+    "js/vendor/pickadate.js/picker.js"
+    "js/vendor/pickadate.js/picker.date.js"
+    "js/vendor/pickadate.js/picker.time.js"
+    "js/vendor/pickadate.js/legacy.js"
+    "stc/css/components/pickadate/datetime.css"
+    "js/jquery.shop.js"
+
+) -%]
 
 <p><a href='[% site.root %]/shop'>&lt;&lt; [% dw.ml( '.backlink', { sitename => site.nameshort } )  %]</a></p>
 
@@ -20,12 +29,35 @@
     [% form.textbox(  name => 'username', value => user, label =>  dw.ml( '.giftfor.username') )  %]
 
     <tr><td>[% dw.ml( '.giftfor.deliverydate') %]</td>
-    <td>" . LJ::html_datetime( {
-        name => 'deliverydate',
-        default => date,
-        notime => 1,
-    } ) . "</td></tr>
+    <td>
+<div class="row" id="deliverydate">
+            <div class="columns small-8">
+        [%- form.textbox(
+            name = "deliverydate"
+            id = "js-deliverydate"
 
+            maxlength = "10"
+            size = "10"
+
+
+            default = date.iso8601.substr(0, 10)
+
+            autocomplete = "off"
+        ) -%]
+        </div>
+        <div class="columns small-4">
+        [%- INCLUDE "components/icon-button.tt"
+                button = {
+                    class = "postfix secondary"
+                    id = "js-deliverydate-button"
+                }
+                icon = "calendar"
+                text = dw.ml('.label.picker.date')
+        -%]
+        <div class="picker-output"></div>
+        </div>
+        </div>
+</td></tr>
     [% form.checkbox(
         label => dw.ml( '.giftfor.anonymous')
         name => 'anonymous',
