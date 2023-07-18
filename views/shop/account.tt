@@ -1,6 +1,38 @@
 [% sections.title =  dw.ml( ".title" ) %]
-<p><a href='$LJ::SITEROOT/shop'>&lt;&lt; [% dw.ml( '.backlink', { sitename => site.nameshort } ) %]</a></p>
+[%- dw.need_res( { group => "foundation" },
+    ## date
+    "js/vendor/pickadate.js/picker.js"
+    "js/vendor/pickadate.js/picker.date.js"
+    "js/vendor/pickadate.js/picker.time.js"
+    "js/vendor/pickadate.js/legacy.js"
+    "stc/css/components/pickadate/datetime.css"
+    "js/jquery.shop.js"
 
+) -%]
+<p><a href='[% site.root %]/shop'>&lt;&lt; [% dw.ml( '.backlink', { sitename => site.nameshort } ) %]</a></p>
+
+[% BLOCK print_opts %]
+    [% FOREACH key IN opts.keys.nsort.reverse %]
+        [% opt = opts.$key %]
+        <div class="row">
+        <div class="columns">
+        [% form.checkbox(
+                type     => 'radio',
+                name     => 'accttype',
+                id       => opt.name,
+                value    => opt.name,
+                label    => dw.ml( 'widget.shopitemoptions.price',
+                {
+                    num    => key
+                    price  => opt.price,
+                    points => opt.points
+                }
+            )
+        ) %]
+        </div>
+        </div>
+    [% END %]
+[% END %]
 [% cart_display %]
     [% IF prem_convert %]
            <div class="error-box">
@@ -16,79 +48,139 @@
         <p>[% dw.ml( ".intro.$for", { aopts => "href='$LJ::HELPURL{paidaccountinfo}'" } ) %]</p>
     [% END %]
 
-
-
     <div style='clear: both;'></div>
     <form method='post'>
     [% dw.form_auth() %]
-    <table summary='' class='shop-table'><tr>
-    <td>" . LJ::Widget::ShopItemOptions->render( option_name => 'accttype', item => 'prem', post => $post_fields ) %]</td>
-    <td>" . LJ::Widget::ShopItemOptions->render( option_name => 'accttype', item => 'paid', post => $post_fields ) %]</td>"
-        if $for ne 'self' || DW::Shop::Item::Account->allow_account_conversion( $remote, 'paid' );
-    </tr>
+    <div class="row">
+    <div class="columns medium-6">
+        <strong>[% dw.ml("widget.shopitemoptions.header.prem") %]</strong>
+        [% PROCESS print_opts opts = get_opts('prem') %]
+    </div>
+    <div class="columns medium-6">
+    [% IF for != 'self' || allow_convert %]
+        <strong>[% dw.ml("widget.shopitemoptions.header.paid") %]</strong>
+        [% PROCESS print_opts opts = get_opts('paid') %]
+    [% END %]
+    </div>
+</div>
+   [% IF seed_avail %]
+        <div class="row">
+        <div class="columns medium-6 end">
+        <span class='shop-item-highlight'>[% dw.ml( "widget.shopitemoptions.highlight.seed", { num => num_perms } ) %]</span>
 
-   [% IF perm_avail %]
-        <tr><td colspan='2'>
-        $ret .= LJ::Widget::ShopItemOptions->render( option_name => 'accttype', item => 'seed', post => $post_fields );
-        </td></tr>
+        <strong>[% dw.ml("widget.shopitemoptions.header.seed") %]</strong>
+        [% PROCESS print_opts opts = get_opts('seed') %]
+        </div>
+        </div>
     [% END %]
 
-    </table>
-	<table summary='' class='shop-table-gift'>
 
-    [% IF for && ! for == 'self' %]
+<div class="row bottom-block">
+<div class="columns large-6">
+    [% IF for && ! (for == 'self') %]
         [% IF for == 'gift' %]
-            <tr><td>[% dw.ml('.giftfor.username') %]</td><td>[% form.textbox( name => 'username' ) %]</td></tr>
+        <div class="row collapse">
+            <div class="columns medium-6">
+                <label for="username">[% dw.ml( '.giftfor.username') %]</label>
+            </div>
+            <div class="columns medium-6">
+                [% form.textbox(  name => 'username')  %]
+            </div>
+        </div>
         [% ELSIF for == 'random' %]
             [% IF randomu %]
-                <tr><td>[% dw.ml('.giftfor.username') %]</td><td><strong>[% randomu.ljuser_display %]</strong></td></tr>
-                [% form.hidden( name = 'username', value = randomu.user ) %]
+            <div class="row collapse foru">
+                <div class="columns medium-6">
+                    <label for="username">[% dw.ml( '.giftfor.username') %]</label>
+                </div>
+                <div class="columns medium-6">
+                    [% randomu.ljuser_display %]
+                    [% form.hidden( name = 'username', value = randomu.user ) %]
+                </div>
+            </div>             
             [% ELSE %]
-                <tr><td>[% dw.ml('.giftfor.username') %]</td><td><strong>[% dw.ml('.giftfor.username.random') %]</strong></td></tr>
-                [% form.hidden( name = 'username', value = '(random)' ) %]
+            <div class="row collapse">
+                <div class="columns medium-6">
+                    <label for="username">[% dw.ml( '.giftfor.username') %]</label>
+                </div>
+                <div class="columns medium-6">
+                    [% dw.ml('.giftfor.username.random') %]
+                    [% form.hidden( name = 'username', value = 'random') %]
+                </div>
+            </div>  
             [% END %]
         [% ELSE %]
-            <tr><td>[% dw.ml('.giftfor.email') %]</td><td>[% form.textbox( name => 'email' ) %]
-            <br />
+        <div class="row collapse">
+            <div class="columns medium-6">
+                <label for="email">[% dw.ml( '.giftfor.email') %]</label>
+            </div>
+            <div class="columns medium-6">
+                [% form.textbox(  name => 'email')  %]
+                            <br />
             [% email_checkbox %]
-            </td></tr>
+            </div>
+        </div>  
         [% END %]
     [% END %]
 
-	<tr><td>[% dw.ml('.giftfor.deliverydate') %]</td>
-	my $deliverydate = $POST{deliverydate_mm} && $POST{deliverydate_dd} && $POST{deliverydate_yyyy}
-				? sprintf( '%04d-%02d-%02d', $POST{deliverydate_yyyy}, $POST{deliverydate_mm}, $POST{deliverydate_dd} )
-				: DateTime->today->date;
-	<td>" . LJ::html_datetime( {
-		name => 'deliverydate',
-		default => $deliverydate,
-		notime => 1,
-	} ) </td></tr>
+    <div class="row collapse" id="deliverydate">
+        <div class="columns medium-6">
+            <label for="deliverydate" class="inline">[% dw.ml( '.giftfor.deliverydate') %]</label>
+        </div>
+        <div class="columns medium-5 small-10">
+            [%- form.textbox(
+                name = "deliverydate"
+                id = "js-deliverydate"
 
-[% IF for && ! for == 'self' %]
-    <tr><td>[% dw.ml('.giftfor.anonymous') %]</td>
-    <td>[% form.checkbox(
-        name => 'anonymous',
-        value => 1,
-        disabled => (remote ? 0 : 1),
-        selected => $formdata.anonymous || ! remote,
-    ) %]</td></tr>
+                maxlength = "10"
+                size = "10"
 
+                default = date.iso8601.substr(0, 10)
 
-    [% IF acct_reason %]
-        <tr><td>[% dw.ml('.giftfor.reason') %]</td><td>
-        [% form.textarea(
-                                    name => 'reason',
-                                    rows => 6,
-                                    cols => 60,
-                                    wrap => 'soft'
-                                 ) %]
-        </td></tr>
+                autocomplete = "off"
+            ) -%]
+        </div>
+        <div class="columns medium-1 small-2">
+            [%- INCLUDE "components/icon-button.tt"
+                    button = {
+                        class = "postfix primary"
+                        id = "js-deliverydate-button"
+                    }
+                    icon = "calendar"
+                    text = dw.ml('.label.picker.date')
+            -%]
+
+        </div>
+                <div class="picker-output"></div>
+    </div>
+
+    [% IF for && ! (for == 'self') %]
+    <div class="row">
+        <div class="columns">
+        [% form.checkbox(
+            name => 'anonymous',
+            label => dw.ml( '.giftfor.anonymous'),
+            value => 1,
+            disabled => remote ? 0 : 1,
+            ) %]
+        </div>
+    </div>
+    </div>
+    <div class="columns large-6">
+        [% IF acct_reason %]
+                [% form.textarea(
+                            name => 'reason',
+                            rows => 6,
+                            cols => 60,
+                            wrap => 'soft'
+                            label = dw.ml( '.giftfor.reason')
+                            ) %]
+        [% END %]
+        </div>
+
     [% END %]
-
-[% END %]
-
-	</table>
+</div>
+</div>
 
     [% IF prem_convert %]
 		<p>

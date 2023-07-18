@@ -36,6 +36,7 @@ DW::Routing->register_string( '/shop/checkout', \&shop_checkout_handler, app => 
 DW::Routing->register_string( '/shop/history',  \&shop_history_handler,  app => 1 );
 DW::Routing->register_string( '/shop/cancel',   \&shop_cancel_handler,   app => 1 );
 DW::Routing->register_string( '/shop/cart',     \&shop_cart_handler,     app => 1 );
+DW::Routing->register_string( '/shop/confirm',  \&shop_confirm_handler,  app => 1 );
 
 # our basic shop controller, this does setup that is unique to all shop
 # pages and everybody should call this first.  returns the same tuple as
@@ -239,17 +240,45 @@ sub shop_cart_handler {
     my $GET    = $r->get_args;
     my $POST   = $r->post_args;
 
+    if ( $r->did_post() ) {
+
+        # checkout methods depend on which button was clicked
+        my $cm;
+        $cm = 'gco'
+            if LJ::is_enabled('googlecheckout')
+            && ( $POST->{checkout_gco} || $POST->{'checkout_gco.x'} );
+        $cm = 'creditcard'      if $POST->{checkout_creditcard};
+        $cm = 'checkmoneyorder' if $POST->{checkout_cmo} || $POST->{checkout_free};
+        $cm = 'stripe'          if $POST->{checkout_stripe};
+
+        # check out?
+        return $r->redirect("$LJ::SITEROOT/shop/checkout?method=$cm")
+            if defined $cm;
+
+        # remove selected items
+        if ( $POST->{'removeselected'} ) {
+            return error_ml('widget.shopcart.error.nocart') unless $cart;
+
+            foreach my $val ( keys %$POST ) {
+                next unless $POST->{$val} && $val =~ /^remove_(\d+)$/;
+                print $1;
+                $cart->remove_item($1);
+            }
+        }
+
+        # discard entire cart
+        if ( $POST->{'discard'} ) {
+            return $r->redirect("$LJ::SITEROOT/shop?newcart=1");
+        }
+
+    }
+
     my $vars = {
         duplicate   => $GET->{duplicate},
         failed      => $GET->{failed},
         cart_widget => LJ::Widget::ShopCart->render
     };
 
-    if ( $r->did_post() ) {
-        my %from_post = LJ::Widget->handle_post( $POST, ('ShopCart') );
-        $vars->{error} = $from_post{error} if $from_post{error};
-
-    }
     return DW::Template->render_template( 'shop/cart.tt', $vars );
 }
 

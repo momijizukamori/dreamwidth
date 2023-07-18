@@ -39,18 +39,19 @@ while ( @$userids && ( my @userids_chunk = splice( @$userids, 0, 100 ) ) ) {
     foreach my $userid ( keys %$us ) {
         my $u = $us->{$userid};
 
-        next if $u->is_paid;                    # must not be a paid user
-        next if $u->timecreate > $month_ago;    # must be created more than a month ago
-        next if $u->number_of_posts < 10;       # must have at least 10 posts
-        next if $u->timeupdate < $week_ago;     # must have posted in the past week
-        next unless $u->opt_randompaidgifts;    # must allow random paid gifts
+        next if $u->is_paid;    # must not be a paid user
+             # next if $u->timecreate > $month_ago;    # must be created more than a month ago
+             # next if $u->number_of_posts < 10;       # must have at least 10 posts
+             # next if $u->timeupdate < $week_ago;     # must have posted in the past week
+             # next unless $u->opt_randompaidgifts;    # must allow random paid gifts
         next if LJ::sysban_check( 'pay_user', $u->user );    # must not be sysbanned from payments
 
         my $members_count = 0;
-        if ( $u->is_community ) {
-            $members_count = scalar $u->member_userids;
-            next if $members_count < 10;    # community must have at least 10 members
-        }
+
+        # if ( $u->is_community ) {
+        #     $members_count = scalar $u->member_userids;
+        #     next if $members_count < 10;    # community must have at least 10 members
+        # }
 
         # get the number of entries posted and comments left in the past month
         my $dbcr = LJ::get_cluster_reader($u);

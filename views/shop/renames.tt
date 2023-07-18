@@ -17,21 +17,26 @@
 <p>[% dw.ml( ".intro.$for" ) %]</p>
 <p>[% dw.ml( '.action', { aopts => "href='/rename'" } )  %]</p>
 
-[% IF error %]
-    <div class="shop-error error-box">[% error %]</div>
-[% END %]
-
 <div style='clear: both;'></div>
 <form method='post'>
 [% dw.form_auth() %]
 
 [% IF for == "gift" %]
-    [% form.textbox(  name => 'username', value => user, label =>  dw.ml( '.giftfor.username') )  %]
-
-    <tr><td>[% dw.ml( '.giftfor.deliverydate') %]</td>
-    <td>
-<div class="row" id="deliverydate">
-            <div class="columns small-8">
+<div class="row">
+<div class="columns large-6 end">
+<div class="row collapse">
+    <div class="columns medium-6">
+        <label for="username">[% dw.ml( '.giftfor.username') %]</label>
+    </div>
+    <div class="columns medium-6">
+        [% form.textbox(  name => 'username')  %]
+    </div>
+</div>
+<div class="row collapse" id="deliverydate">
+    <div class="columns medium-6">
+        <label for="deliverydate" class="inline">[% dw.ml( '.giftfor.deliverydate') %]</label>
+    </div>
+    <div class="columns medium-5 small-10">
         [%- form.textbox(
             name = "deliverydate"
             id = "js-deliverydate"
@@ -44,27 +49,34 @@
 
             autocomplete = "off"
         ) -%]
-        </div>
-        <div class="columns small-4">
+    </div>
+    <div class="columns medium-1 small-2">
         [%- INCLUDE "components/icon-button.tt"
                 button = {
-                    class = "postfix secondary"
+                    class = "postfix primary"
                     id = "js-deliverydate-button"
                 }
                 icon = "calendar"
                 text = dw.ml('.label.picker.date')
         -%]
-        <div class="picker-output"></div>
-        </div>
-        </div>
-</td></tr>
+
+    </div>
+            <div class="picker-output"></div>
+</div>
+<div class="row">
+    <div class="columns">
     [% form.checkbox(
-        label => dw.ml( '.giftfor.anonymous')
         name => 'anonymous',
+        label => dw.ml( '.giftfor.anonymous'),
         value => 1,
         selected => remote ? 0 : 1,
         disabled => remote ? 0 : 1,
         ) %]
+    </div>
+</div>
+</div>
+</div>
+
 [% END %]
 
 [% form.hidden( name = 'for', value = for) %]

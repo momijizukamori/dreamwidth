@@ -26,6 +26,7 @@ use DW::Routing;
 use DW::Shop;
 use DW::Template;
 use LJ::JSON;
+use DW::FormErrors;
 
 DW::Routing->register_string( '/shop/points',  \&shop_points_handler,  app => 1 );
 DW::Routing->register_string( '/shop/icons',   \&shop_icons_handler,   app => 1 );
@@ -180,7 +181,7 @@ sub shop_renames_handler {
     my $r      = DW::Request->get;
     my $remote = $rv->{remote};
     my $GET    = $r->get_args;
-    my $POST   = $r->post_args;
+    my $post   = $r->post_args;
 
     return $r->redirect("$LJ::SITEROOT/shop")
         unless exists $LJ::SHOP{rename};
@@ -196,33 +197,81 @@ sub shop_renames_handler {
 
     my $vars = {
         'for'        => $for,
-        user         => $GET->{user},
         remote       => $remote,
         cart_display => $rv->{cart_display},
-        date         => DateTime->today
+        date         => DateTime->today,
+        formdata     => $post || { username => $GET->{user}, anonymous => ( $remote ? 0 : 1 ) }
     };
 
+    my $errors = DW::FormErrors->new;
     if ( $r->did_post ) {
-        my $error;
-        my $post_fields = LJ::Widget::ShopItemOptions->post_fields($POST);
+        my %item_data;
+        $item_data{from_userid} = $remote ? $remote->id : 0;
 
-     # need to do this because all of these form fields are in the BML page instead of in the widget
-        LJ::Widget->use_specific_form_fields(
-            post   => $POST,
-            widget => "ShopItemOptions",
-            fields => [
-                qw( item for username deliverydate_mm deliverydate_dd deliverydate_yyyy anonymous )]
-        );
-        my %from_post = LJ::Widget->handle_post( $POST, ('ShopItemOptions') );
-        $error = $from_post{error} if $from_post{error};
+        if ( $post->{for} eq 'self' ) {
+            if ( $remote && $remote->is_personal ) {
+                $item_data{target_userid} = $remote->id;
+            }
+            else {
+                return error_ml('widget.shopitemoptions.error.notloggedin');
+            }
+        }
+        elsif ( $post->{for} eq 'gift' ) {
+            my $target_u   = LJ::load_user( $post->{username} );
+            my $user_check = validate_target_user( $target_u, $remote );
 
-        if ($error) {
-            $vars->{error} = $error;
+            if ( defined $user_check->{error} ) {
+                $errors->add( 'username', $user_check->{error} );
+            }
+            else {
+                $item_data{target_userid} = $target_u->id;
+            }
+
         }
-        else {
-            return $r->redirect("$LJ::SITEROOT/shop");
+
+        if ( $post->{deliverydate} ) {
+            $post->{deliverydate} =~ /(\d{4})-(\d{2})-(\d{2})/;
+            my $given_date = DateTime->new(
+                year  => $1,
+                month => $2,
+                day   => $3,
+            );
+
+            my $time_check = DateTime->compare( $given_date, DateTime->today );
+
+            if ( $time_check < 0 ) {
+
+                # we were given a date in the past
+                $errors->add( 'deliverydate', 'time cannot be in the past' );    #FIXME
+            }
+            elsif ( $time_check > 0 ) {
+
+                # date is in the future, add it.
+                $item_data{deliverydate} = $given_date->date;
+            }
+
         }
+
+        unless ( $errors->exist ) {
+            $item_data{anonymous} = 1
+                if $post->{anonymous} || !$remote;
+
+            $item_data{reason} = LJ::strip_html( $post->{reason} );
+
+            my ( $rv, $err ) =
+                $rv->{cart}
+                ->add_item( DW::Shop::Item::Rename->new( cannot_conflict => 1, %item_data ) );
+
+            $errors->add( '', $err ) unless $rv;
+
+            unless ( $errors->exist ) {
+                return $r->redirect("$LJ::SITEROOT/shop");
+            }
+        }
+
     }
+
+    $vars->{errors} = $errors;
 
     return DW::Template->render_template( 'shop/renames.tt', $vars );
 }
@@ -236,7 +285,7 @@ sub shop_account_handler {
     my $r      = DW::Request->get;
     my $remote = $rv->{remote};
     my $GET    = $r->get_args;
-    my $POST   = $r->post_args;
+    my $post   = $r->post_args;
     my $vars;
 
     my $scope = "/shop/account.tt";
@@ -273,66 +322,209 @@ sub shop_account_handler {
         $vars->{paid_status} = DW::Widget::PaidAccountStatus->render;
     }
 
+    my $errors = DW::FormErrors->new;
     if ( $r->did_post ) {
-        my $error;
-        my %from_post;
 
-        $post_fields = LJ::Widget::ShopItemOptions->post_fields($POST);
+        my %item_data;
 
-        if ( keys %$post_fields ) {    # make sure the user selected an account type
-             # need to do this because all of these form fields are in the BML page instead of in the widget
-            LJ::Widget->use_specific_form_fields(
-                post   => $POST,
-                widget => "ShopItemOptions",
-                fields => [
-                    qw( for username email deliverydate_mm deliverydate_dd deliverydate_yyyy anonymous reason alreadyposted force_spelling prem_convert )
-                ]
+        $item_data{from_userid} = $remote ? $remote->id : 0;
+
+        if ( $post->{for} eq 'self' ) {
+            if ( $remote && $remote->is_personal ) {
+                $item_data{target_userid} = $remote->id;
+            }
+            else {
+                return error_ml('widget.shopitemoptions.error.notloggedin');
+            }
+        }
+        elsif ( $post->{for} eq 'gift' ) {
+            my $target_u   = LJ::load_user( $post->{username} );
+            my $user_check = validate_target_user( $target_u, $remote );
+
+            if ( defined $user_check->{error} ) {
+                $errors->add( 'username', $user_check->{error} );
+            }
+            else {
+                $item_data{target_userid} = $target_u->id;
+            }
+        }
+        elsif ( $post->{for} eq 'random' ) {
+            my $target_u;
+            if ( $post->{username} eq '(random)' ) {
+                $target_u = DW::Pay::get_random_active_free_user();
+                return error_ml('widget.shopitemoptions.error.nousers')
+                    unless LJ::isu($target_u);
+                $item_data{anonymous_target} = 1;
+            }
+            else {
+                $target_u = LJ::load_user( $post->{username} );
+            }
+
+            my $user_check = validate_target_user( $target_u, $remote );
+
+            if ( defined $user_check->{error} ) {
+                $errors->add( 'username', $user_check->{error} );
+            }
+            else {
+                $item_data{target_userid} = $target_u->id;
+                $item_data{random}        = 1;
+            }
+        }
+        elsif ( $post->{for} eq 'new' ) {
+            my @email_errors;
+            LJ::check_email( $post->{email}, \@email_errors, $post, $post->{email_checkbox} );
+            if (@email_errors) {
+                $errors->add( 'email', join( ', ', @email_errors ) );
+            }
+            else {
+                $item_data{target_email} = $post->{email};
+            }
+        }
+
+        if ( $post->{deliverydate} ) {
+            $post->{deliverydate} =~ /(\d{4})-(\d{2})-(\d{2})/;
+            my $given_date = DateTime->new(
+                year  => $1,
+                month => $2,
+                day   => $3,
             );
 
-            @BMLCodeBlock::errors = ();    # LJ::Widget->handle_post uses this global variable
-            eval {
-                %from_post = LJ::Widget->handle_post( $POST,
-                    'ShopItemOptions' => { email_checkbox => \$email_checkbox } );
-            };
+            my $time_check = DateTime->compare( $given_date, DateTime->today );
 
-            my @errs = map { LJ::ehtml($_) } split "\n", $BMLCodeBlock::errors[0] // '';
-            push @errs, $@ if $@;
-            if ( $from_post{error} && ( !@errs || $from_post{error} ne 'premium_convert' ) ) {
-                push @errs, $from_post{error};
+            if ( $time_check < 0 ) {
+
+                # we were given a date in the past
+                $errors->add( 'deliverydate', 'time cannot be in the past' );    #FIXME
             }
-            $error = join "<br>", @errs;
+            elsif ( $time_check > 0 ) {
+
+                # date is in the future, add it.
+                $item_data{deliverydate} = $given_date->date;
+            }
 
         }
-        else {
-            $error = LJ::Lang::ml('.error.noselection');
+        unless ( $errors->exist ) {
+            $item_data{anonymous} = 1
+                if $post->{anonymous} || !$remote;
+
+            $item_data{reason} = LJ::strip_html( $post->{reason} );    # plain text
+
+            # build a new item and try to toss it in the cart.  this fails if there's a
+            # conflict or something
+
+            my $item = DW::Shop::Item::Account->new(
+                type           => $post->{accttype},
+                user_confirmed => $post->{alreadyposted},
+                force_spelling => $post->{force_spelling},
+                %item_data
+            );
+
+            # check for renewing premium as paid
+            my $u           = LJ::load_userid( $item ? $item->t_userid : undef );
+            my $paid_status = $u ? DW::Pay::get_paid_status($u) : undef;
+
+            if ($paid_status) {
+                my $paid_curtype = DW::Pay::type_shortname( $paid_status->{typeid} );
+                my $has_premium  = $paid_curtype eq 'premium' ? 1 : 0;
+
+                my $ok = DW::Shop::Item::Account->allow_account_conversion( $u, $item->class );
+
+                if ( $ok && $has_premium && $item->class eq 'paid' && !$post->{prem_convert} ) {
+
+                    # check account expiration date
+                    my $exptime = DateTime->from_epoch( epoch => $paid_status->{expiretime} );
+                    my $newtime = DateTime->now;
+
+                    if ( my $future_ymd = $item->deliverydate ) {
+                        my ( $y, $m, $d ) = split /-/, $future_ymd;
+                        $newtime = DateTime->new( year => $y + 0, month => $m + 0, day => $d + 0 );
+                    }
+
+                    my $to_day = sub { return $_[0]->truncate( to => 'day' ) };
+
+                    if ( DateTime->compare( $to_day->($exptime), $to_day->($newtime) ) ) {
+                        my $months = $item->months;
+                        my $newexp = $exptime->clone->add( months => $months );
+                        my $paid_d = $exptime->delta_days($newexp)->in_units('days');
+
+                        # FIXME: this should be DW::BusinessRules::Pay::DWS::CONVERSION_RATE
+                        my $prem_d = int( $paid_d * 0.7 );
+
+                        my $ml_args =
+                            { date => $exptime->ymd, premium_num => $prem_d, paid_num => $paid_d };
+
+                        # but only include date if the logged-in user owns the account
+                        delete $ml_args->{date} unless $remote && $remote->has_same_email_as($u);
+
+                        $errors->add( undef, '.error.premiumconvert',          $ml_args );
+                        $errors->add( undef, '.error.premiumconvert.postdate', $ml_args )
+                            if $ml_args->{date};
+                        $vars->{premium_convert} = 1;
+
+                    }
+                }
+            }
+
+            unless ( $errors->exist ) {
+
+                my ( $rv, $err ) = $rv->{cart}->add_item($item);
+                $errors->add( '', $err ) unless $rv;
+
+                unless ( $errors->exist ) {
+                    return $r->redirect("$LJ::SITEROOT/shop");
+                }
+            }
         }
 
-        if ( $error eq 'premium_convert' ) {
-            $premium_convert = 1;
+    }
 
-            my $ml_args = $from_post{ml_args};
-            $vars->{ml_args} = $ml_args;
+    $vars->{errors} = $errors;
 
+    sub get_opts {
+        my $given_item = shift;
+        my %month_values;
+        foreach my $item ( keys %LJ::SHOP ) {
+            if ( $item =~ /^$given_item(\d*)$/ ) {
+                my $i = $1 || 1;
+                $month_values{$i} = {
+                    name   => $item,
+                    points => $LJ::SHOP{$item}->[3],
+                    price  => "\$" . sprintf( "%.2f", $LJ::SHOP{$item}->[0] ) . " USD"
+                };
+            }
         }
-        elsif ($error) {
-            $vars->{errors} = $error;
-        }
-        else {
-            return $r->redirect("$LJ::SITEROOT/shop");
-        }
+        return \%month_values;
     }
 
     $vars->{for}             = $for;
     $vars->{remote}          = $remote;
     $vars->{cart_display}    = $rv->{cart_display};
-    $vars->{perm_avail}      = DW::Pay::num_permanent_accounts_available() > 0;
-    $vars->{formdata}        = $POST || { username => $GET->{user}, anonymous => };
+    $vars->{seed_avail}      = DW::Pay::num_permanent_accounts_available() > 0;
+    $vars->{num_perms}       = DW::Pay::num_permanent_accounts_available_estimated();
+    $vars->{formdata}        = $post || { username => $GET->{user}, anonymous => };
     $vars->{did_post}        = $r->did_post;
     $vars->{acct_reason}     = DW::Shop::Item::Account->can_have_reason;
     $vars->{premium_convert} = $premium_convert;
     $vars->{email_checkbox}  = $email_checkbox;
+    $vars->{get_opts}        = \&get_opts;
+    $vars->{date}            = DateTime->today;
+    $vars->{allow_convert}   = DW::Shop::Item::Account->allow_account_conversion( $remote, 'paid' );
 
     return DW::Template->render_template( 'shop/account.tt', $vars );
+}
+
+sub validate_target_user {
+    my ( $target_u, $remote ) = shift;
+    return { error => 'widget.shopitemoptions.error.invalidusername' }
+        unless LJ::isu($target_u);
+
+    return { error => 'widget.shopitemoptions.error.expungedusername' }
+        if $target_u->is_expunged;
+
+    return { error => 'widget.shopitemoptions.error.banned' }
+        if $remote && $target_u->has_banned($remote);
+
+    return { success => 1 };
 }
 
 1;

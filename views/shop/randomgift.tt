@@ -6,15 +6,15 @@
 [% IF randomu %]
     <p>[% dw.ml( ".intro.$type", { aopts => "href='${site.root}/shop/randomgift?type=$type'", aopts2 => "href='${site.root}/shop/account?for=random'" } )  %]</p>
     <p><strong>[% dw.ml('.label.username') %]</strong> [% randomu.ljuser_display %]<br />
-    <strong>[% dw.ml('.label.createdate') %]</strong>[% mysql_time( randomu.timecreate ) %]<br />
-    <strong>[% dw.ml('.label.lastupdated') %]</strong>[% mysql_time( randomu.timeupdate ).substr( 0, 10 ) %]<br />
-    <strong>[% dw.ml('.label.numentries') %]</strong>[% randomu.number_of_posts %]<br />
+    <strong>[% dw.ml('.label.createdate') %]</strong> [% mysql_time( randomu.timecreate ) %]<br />
+    <strong>[% dw.ml('.label.lastupdated') %]</strong> [% mysql_time( randomu.timeupdate ).substr( 0, 10 ) %]<br />
+    <strong>[% dw.ml('.label.numentries') %]</strong> [% randomu.number_of_posts %]<br />
     [% IF type == 'P' %]
-        <strong>[% dw.ml('.label.numcomments') %]</strong>[% randomu.num_comments_posted %]<br />
-        <strong>[% dw.ml('.label.numcommunities') %]</strong>[% randomu.member_of_userids.size %]<br />
+        <strong>[% dw.ml('.label.numcomments') %]</strong> [% randomu.num_comments_posted %]<br />
+        <strong>[% dw.ml('.label.numcommunities') %]</strong> [% randomu.member_of_userids.size ? randomu.member_of_userids.size : 0 %]<br />
     [% ELSE %]
-        <strong>[% dw.ml('.label.numcomments') %]</strong>[% randomu.num_comments_received %]<br />
-        <strong>[% dw.ml('.label.nummembers') %]</strong>[% randomu.member_userids.size %]<br />
+        <strong>[% dw.ml('.label.numcomments') %]</strong> [% randomu.num_comments_received %]<br />
+        <strong>[% dw.ml('.label.nummembers') %]</strong> [% randomu.member_userids.size %]<br />
     [% END %]
     </p>
 
@@ -22,7 +22,7 @@
     [% form.hidden( name = 'username', value = randomu.user ) %]
     [% form.submit( value = dw.ml( '.form.submit', { username => randomu.user } ) ) %] 
     <a href='[% site.root %]/shop/randomgift?type=[% type %]'>[% dw.ml( ".form.getanother.$type") %]</a>
-    &nbsp;&nbsp;<a href='[% site.root %]/shop/randomgift?type=$othertype'>[% dw.ml( ".form.switchtype.$type") %]</a>
+    &nbsp;&nbsp;<a href='[% site.root %]/shop/randomgift?type=[% othertype %]'>[% dw.ml( ".form.switchtype.$type") %]</a>
     </form><br />
 [% ELSE %]
     <p>[% dw.ml( ".nousers.$type") %]</p>
