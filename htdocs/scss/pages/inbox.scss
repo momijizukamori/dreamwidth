@@ -148,6 +148,20 @@
   #folder_list.even {
     background-color: transparent;
   }
+
+@supports(not (display: grid)) {
+  #inbox_folders {
+    display: inline-block;
+    vertical-align: top;
+  }
+
+  #inbox_messages {
+    display: inline-block;
+    width: auto !important;
+  }
+
+  .checkbox { text-align: left;}
+}
 }
 
 #folder-btn.no-js {
@@ -299,4 +313,8 @@
 
 .inbox_item_row:first-of-type{
   border-width: 0;
+}
+
+@supports(not (display: grid)) {
+  .checkbox { text-align: left;}
 }
