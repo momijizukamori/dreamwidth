@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="en" xml:lang="en">
+<head>
+<title>DW::Request &mdash; Dreamwidth</title>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" /><link rel="stylesheet" href="../podstyle.css" type="text/css" />
+</head>
+<body><div class="box">
+  <h1 class="t1">Dreamwidth</h1>
+  <table>
+    <tr>
+      <td class="label">Description</td>
+      <td class="cell">manuals and libraries</td>
+    </tr>
+  </table>
+</div>
+<div class="path">
+  <a href="../index.html">Dreamwidth</a> &gt; Perl Modules &gt;
+  DW::Request
+</div>
+<div>
+
+</div>
+
+<div class="pod">
+
+
+<ul id="index">
+  <li><a href="#NAME">NAME</a></li>
+  <li><a href="#SYNOPSIS">SYNOPSIS</a></li>
+  <li><a href="#Class-Methods">Class Methods</a>
+    <ul>
+      <li><a href="#DW::Request-get">DW::Request-&gt;get</a></li>
+      <li><a href="#DW::Request-reset">DW::Request-&gt;reset</a></li>
+    </ul>
+  </li>
+  <li><a href="#Required-Object-Methods">Required Object Methods</a>
+    <ul>
+      <li><a href="#r-add_cookie-args">$r-&gt;add_cookie( %args )</a></li>
+      <li><a href="#r-call_response_handler-subref">$r-&gt;call_response_handler( $subref )</a></li>
+      <li><a href="#r-content">$r-&gt;content</a></li>
+      <li><a href="#r-content_type-content_type">$r-&gt;content_type( [$content_type] )</a></li>
+      <li><a href="#r-cookie-name">$r-&gt;cookie( $name )</a></li>
+      <li><a href="#r-delete_cookie-args">$r-&gt;delete_cookie( %args )</a></li>
+      <li><a href="#r-did_post">$r-&gt;did_post</a></li>
+      <li><a href="#r-err_header_out-header-value">$r-&gt;err_header_out( $header[, $value] )</a></li>
+      <li><a href="#r-err_header_out_add-header-value">$r-&gt;err_header_out_add( $header, $value )</a></li>
+      <li><a href="#r-get_args">$r-&gt;get_args</a></li>
+      <li><a href="#r-get_remote_ip">$r-&gt;get_remote_ip</a></li>
+      <li><a href="#r-host">$r-&gt;host</a></li>
+      <li><a href="#r-header_in-header-value">$r-&gt;header_in( $header[, $value] )</a></li>
+      <li><a href="#r-headers_in">$r-&gt;headers_in</a></li>
+      <li><a href="#r-header_out-header-value">$r-&gt;header_out( $header[, $value] )</a></li>
+      <li><a href="#r-headers_out">$r-&gt;headers_out</a></li>
+      <li><a href="#r-header_out_add-header-value">$r-&gt;header_out_add( $header, $value )</a></li>
+      <li><a href="#r-meets_conditions">$r-&gt;meets_conditions</a></li>
+      <li><a href="#r-method">$r-&gt;method</a></li>
+      <li><a href="#r-note-note-value">$r-&gt;note( $note[, $value] )</a></li>
+      <li><a href="#r-pnote-note-value">$r-&gt;pnote( $note[, $value] )</a></li>
+      <li><a href="#r-post_args">$r-&gt;post_args</a></li>
+      <li><a href="#r-print-string">$r-&gt;print( $string )</a></li>
+      <li><a href="#r-query_string">$r-&gt;query_string</a></li>
+      <li><a href="#r-set_last_modified-when">$r-&gt;set_last_modified( $when )</a></li>
+      <li><a href="#r-status-status">$r-&gt;status( [$status] )</a></li>
+      <li><a href="#r-status_line-status">$r-&gt;status_line( [$status] )</a></li>
+      <li><a href="#r-uri">$r-&gt;uri</a></li>
+    </ul>
+  </li>
+  <li><a href="#Optional-Object-Methods">Optional Object Methods</a>
+    <ul>
+      <li><a href="#r-document_root">$r-&gt;document_root</a></li>
+      <li><a href="#r-r">$r-&gt;r</a></li>
+      <li><a href="#r-read">$r-&gt;read</a></li>
+      <li><a href="#r-response_content">$r-&gt;response_content</a></li>
+      <li><a href="#r-response_as_string">$r-&gt;response_as_string</a></li>
+      <li><a href="#r-spawn">$r-&gt;spawn</a></li>
+      <li><a href="#r-redirect-url">$r-&gt;redirect( $url )</a></li>
+      <li><a href="#r-no_cache">$r-&gt;no_cache</a></li>
+    </ul>
+  </li>
+  <li><a href="#AUTHORS">AUTHORS</a></li>
+  <li><a href="#COPYRIGHT-AND-LICENSE">COPYRIGHT AND LICENSE</a></li>
+</ul>
+
+<h1 id="NAME">NAME</h1>
+
+<p>DW::Request - This module provides an abstraction layer for accessing data traditionally available through Apache::Request and similar modules.</p>
+
+<h1 id="SYNOPSIS">SYNOPSIS</h1>
+
+<h1 id="Class-Methods">Class Methods</h1>
+
+<h2 id="DW::Request-get"><code>DW::Request-&gt;get</code></h2>
+
+<p>Returns a DW::Request object, based on what type of server environment are running under.</p>
+
+<h2 id="DW::Request-reset"><code>DW::Request-&gt;reset</code></h2>
+
+<p>Resets the state. Called after we&#39;ve finished up a request.</p>
+
+<h1 id="Required-Object-Methods">Required Object Methods</h1>
+
+<p>These methods work on any DW::Request subclass.</p>
+
+<h2 id="r-add_cookie-args"><code>$r-&gt;add_cookie( %args )</code></h2>
+
+<p>Sends this cookie to the browser. %args should be the same arguments passed to CGI::Cookie-&gt;new, except without the initial hyphens CGI::Cookie asks you to use. We don&#39;t use those.</p>
+
+<h2 id="r-call_response_handler-subref"><code>$r-&gt;call_response_handler( $subref )</code></h2>
+
+<pre><code>    return $r-&gt;call_response_handler( \&amp;handler );</code></pre>
+
+<p>This will ensure the sub gets called at some point soon, don&#39;t expect it to be called instantly, but also don&#39;t expect this to be return immediately either. Must be called as above, with the result being directly returned.</p>
+
+<h2 id="r-content"><code>$r-&gt;content</code></h2>
+
+<p>Return the raw content of the body. This cannot be used with $r-&gt;post_args.</p>
+
+<h2 id="r-content_type-content_type"><code>$r-&gt;content_type( [$content_type] )</code></h2>
+
+<p>Get or set the content type.</p>
+
+<h2 id="r-cookie-name"><code>$r-&gt;cookie( $name )</code></h2>
+
+<p>Returns value(s) of cookie.</p>
+
+<h2 id="r-delete_cookie-args"><code>$r-&gt;delete_cookie( %args )</code></h2>
+
+<p>%args should be the same arguments passed to CGI::Cookie-&gt;new.</p>
+
+<h2 id="r-did_post"><code>$r-&gt;did_post</code></h2>
+
+<p>Returns true if the request used the POST method. (see $r-&gt;method)</p>
+
+<h2 id="r-err_header_out-header-value"><code>$r-&gt;err_header_out( $header[, $value] )</code></h2>
+
+<p>Sets or gets an response header that is also included on the error pages.</p>
+
+<h2 id="r-err_header_out_add-header-value"><code>$r-&gt;err_header_out_add( $header, $value )</code></h2>
+
+<p>Adds another instance of a header for headers that allow multiple instances that is also included on the error pages.</p>
+
+<h2 id="r-get_args"><code>$r-&gt;get_args</code></h2>
+
+<p>Returns the GET arguments.</p>
+
+<h2 id="r-get_remote_ip"><code>$r-&gt;get_remote_ip</code></h2>
+
+<p>Returns the remote IP.</p>
+
+<h2 id="r-host"><code>$r-&gt;host</code></h2>
+
+<p>Return the (normalized) value of the Host header.</p>
+
+<h2 id="r-header_in-header-value"><code>$r-&gt;header_in( $header[, $value] )</code></h2>
+
+<p>Sets or gets an request header.</p>
+
+<h2 id="r-headers_in"><code>$r-&gt;headers_in</code></h2>
+
+<p>Returns all request headers.</p>
+
+<h2 id="r-header_out-header-value"><code>$r-&gt;header_out( $header[, $value] )</code></h2>
+
+<p>Sets or gets an response header.</p>
+
+<h2 id="r-headers_out"><code>$r-&gt;headers_out</code></h2>
+
+<p>Returns all response headers.</p>
+
+<h2 id="r-header_out_add-header-value"><code>$r-&gt;header_out_add( $header, $value )</code></h2>
+
+<p>Adds another instance of a header for headers that allow multiple instances.</p>
+
+<h2 id="r-meets_conditions"><code>$r-&gt;meets_conditions</code></h2>
+
+<p>This function inspects the client headers and determines if the response fulfills the specified requirements.</p>
+
+<h2 id="r-method"><code>$r-&gt;method</code></h2>
+
+<p>Returns the method.</p>
+
+<h2 id="r-note-note-value"><code>$r-&gt;note( $note[, $value] )</code></h2>
+
+<p>Set or get a note. This must be a plain string.</p>
+
+<h2 id="r-pnote-note-value"><code>$r-&gt;pnote( $note[, $value] )</code></h2>
+
+<p>Set or get a Perl note. This can be any perl ref or string.</p>
+
+<h2 id="r-post_args"><code>$r-&gt;post_args</code></h2>
+
+<p>Return the POST arguments.</p>
+
+<h2 id="r-print-string"><code>$r-&gt;print( $string )</code></h2>
+
+<p>Append $string to the request.</p>
+
+<h2 id="r-query_string"><code>$r-&gt;query_string</code></h2>
+
+<p>Get the raw query string.</p>
+
+<h2 id="r-set_last_modified-when"><code>$r-&gt;set_last_modified( $when )</code></h2>
+
+<p>Set the last modified header to the specified time.</p>
+
+<h2 id="r-status-status"><code>$r-&gt;status( [$status] )</code></h2>
+
+<p>Set or get the HTTP status code.</p>
+
+<h2 id="r-status_line-status"><code>$r-&gt;status_line( [$status] )</code></h2>
+
+<p>Set or get the HTTP status code and message.</p>
+
+<h2 id="r-uri"><code>$r-&gt;uri</code></h2>
+
+<p>Get the current requested uri.</p>
+
+<h1 id="Optional-Object-Methods">Optional Object Methods</h1>
+
+<p>These may not be implemented on all DW::Request layers.</p>
+
+<h2 id="r-document_root"><code>$r-&gt;document_root</code></h2>
+
+<p>Returns the document root.</p>
+
+<h2 id="r-r"><code>$r-&gt;r</code></h2>
+
+<p>Get the internal request, if it exists.</p>
+
+<h2 id="r-read"><code>$r-&gt;read</code></h2>
+
+<p>Read raw data from the request.</p>
+
+<h2 id="r-response_content"><code>$r-&gt;response_content</code></h2>
+
+<p>Return the raw response content.</p>
+
+<h2 id="r-response_as_string"><code>$r-&gt;response_as_string</code></h2>
+
+<p>Return the response as a string.</p>
+
+<h2 id="r-spawn"><code>$r-&gt;spawn</code></h2>
+
+<p>Spawn off an external program.</p>
+
+<h2 id="r-redirect-url"><code>$r-&gt;redirect( $url )</code></h2>
+
+<p>Redirect to a different URL.</p>
+
+<h2 id="r-no_cache"><code>$r-&gt;no_cache</code></h2>
+
+<p>Turn off caching for this resource.</p>
+
+<h1 id="AUTHORS">AUTHORS</h1>
+
+<dl>
+
+<dt id="Mark-Smith-mark-dreamwidth.org">Mark Smith &lt;mark@dreamwidth.org&gt;</dt>
+<dd>
+
+</dd>
+<dt id="Andrea-Nall-anall-andreanall.com">Andrea Nall &lt;anall@andreanall.com&gt;</dt>
+<dd>
+
+</dd>
+</dl>
+
+<h1 id="COPYRIGHT-AND-LICENSE">COPYRIGHT AND LICENSE</h1>
+
+<p>Copyright (c) 2008-2013 by Dreamwidth Studios, LLC.</p>
+
+<p>This program is free software; you may redistribute it and/or modify it under the same terms as Perl itself. For a copy of the license, please reference &#39;perldoc perlartistic&#39; or &#39;perldoc perlgpl&#39;.</p>
+
+</div><div class="footer">generated by <a href="http://metacpan.org/module/Pod::ProjectDocs">Pod::ProjectDocs</a></div></body></html>
+

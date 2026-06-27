@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en" xml:lang="en">
+<head>
+<title>DW::Graphs &mdash; Dreamwidth</title>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" /><link rel="stylesheet" href="../podstyle.css" type="text/css" />
+</head>
+<body><div class="box">
+  <h1 class="t1">Dreamwidth</h1>
+  <table>
+    <tr>
+      <td class="label">Description</td>
+      <td class="cell">manuals and libraries</td>
+    </tr>
+  </table>
+</div>
+<div class="path">
+  <a href="../index.html">Dreamwidth</a> &gt; Perl Modules &gt;
+  DW::Graphs
+</div>
+<div>
+
+</div>
+
+<div class="pod">
+
+
+<ul id="index">
+  <li><a href="#NAME">NAME</a></li>
+  <li><a href="#SYNOPSIS">SYNOPSIS</a></li>
+  <li><a href="#API">API</a>
+    <ul>
+      <li><a href="#DW::Graphs::pie-data-config_filename">DW::Graphs::pie( $data [, $config_filename ] )</a></li>
+      <li><a href="#DW::Graphs::bar-values_ref-labels_ref-xlabel-ylabel-config_filename">DW::Graphs::bar( $values_ref, $labels_ref, $xlabel, $ylabel [, $config_filename ] )</a></li>
+      <li><a href="#DW::Graphs::bar2-values_ref-labels_ref-xlabel-ylabel-config_filename">DW::Graphs::bar2( $values_ref, $labels_ref, $xlabel, $ylabel [, $config_filename ] )</a></li>
+      <li><a href="#DW::Graphs::bar2-values_ref-labels_ref-xlabel-ylabel-config_filename1">DW::Graphs::bar2( $values_ref, $labels_ref, $xlabel, $ylabel [, $config_filename ] )</a></li>
+    </ul>
+  </li>
+  <li><a href="#AUTHORS-AND-COPYRIGHT">AUTHORS AND COPYRIGHT</a></li>
+</ul>
+
+<h1 id="NAME">NAME</h1>
+
+<p>DW::Graphs - creates graphs for the statistics system</p>
+
+<h1 id="SYNOPSIS">SYNOPSIS</h1>
+
+<pre><code>  use DW::Graphs;
+  my $pie = DW::Graphs::pie( { Ponies =&gt; 5, Rainbows =&gt; 1, Unicorns =&gt; 3 } );
+  # Display $pie-&gt;png using your favorite library
+  my $bar = DW::Graphs::bar( [ 5, 1, 3 ], [ qw( Ponies Rainbows Unicorns ) ],
+                                  &#39;Critter&#39;, &#39;Count&#39; );
+  # Display $bar-&gt;png using your favorite library
+  my $bars = DW::Graphs::bar2( [ [ qw( Ponies Rainbows Unicorns ) ],
+                                 [ 5, 1, 3 ], [ 2, 0, 1 ] ],
+                               &#39;Critter&#39;, &#39;Count&#39;,
+                               [ qw( Plain Sparkly ) ] );
+  # Display $bars-&gt;png using your favorite library
+  my $lines = DW::Graphs::lines( [ [ qw( Ponies Rainbows Unicorns ) ],
+                                   [ 5, 1, 3 ], [ 2, 0, 1 ] ],
+                                 &#39;Critter&#39;, &#39;Count&#39;,
+                                 [ qw( Plain Sparkly ) ] );
+  # Display $lines-&gt;png using your favorite library</code></pre>
+
+<h1 id="API">API</h1>
+
+<h2 id="DW::Graphs::pie-data-config_filename"><code>DW::Graphs::pie( $data [, $config_filename ] )</code></h2>
+
+<p>Creates pie chart from $data (slice_label =&gt; slice_value hashref), using optional $config_filename to override defaults. Returns a GD::Graph::pie.</p>
+
+<p>See ~/dw/bin/dev/graphs_usage.pl for more detailed usage information.</p>
+
+<h2 id="DW::Graphs::bar-values_ref-labels_ref-xlabel-ylabel-config_filename"><code>DW::Graphs::bar( $values_ref, $labels_ref, $xlabel, $ylabel [, $config_filename ] )</code></h2>
+
+<p>Creates bar chart from $values_ref (value arrayref), $labels_ref (label arrayref), $xlabel, $ylabel, using optional $config_filename to override defaults. Returns a GD::Graph::bars.</p>
+
+<p>See ~/dw/bin/dev/graphs_usage.pl for more detailed usage information.</p>
+
+<h2 id="DW::Graphs::bar2-values_ref-labels_ref-xlabel-ylabel-config_filename"><code>DW::Graphs::bar2( $values_ref, $labels_ref, $xlabel, $ylabel [, $config_filename ] )</code></h2>
+
+<p>Creates bar chart with two or more sets of data from $ref ([ [ @value_labels ], [ @dataset1 ], [ @dataset2 ], ... ]), $xlabel, $ylabel, $names_ref (label arrayref, must have 1 element per dataset), using optional $config_filename to override defaults. Returns a GD::Graph::bars.</p>
+
+<p>See ~/dw/bin/dev/graphs_usage.pl for more detailed usage information.</p>
+
+<h2 id="DW::Graphs::bar2-values_ref-labels_ref-xlabel-ylabel-config_filename1"><code>DW::Graphs::bar2( $values_ref, $labels_ref, $xlabel, $ylabel [, $config_filename ] )</code></h2>
+
+<p>Creates line graph with two or more sets of data from $ref ([ [ @value_labels ], [ @dataset1 ], [ @dataset2 ], ... ]), $xlabel, $ylabel, $names_ref (label arrayref, must have 1 element per dataset), using optional $config_filename to override defaults. Returns a GD::Graph::bars.</p>
+
+<p>See ~/dw/bin/dev/graphs_usage.pl for more detailed usage information.</p>
+
+<h1 id="AUTHORS-AND-COPYRIGHT">AUTHORS AND COPYRIGHT</h1>
+
+<p>Authors: Anarres &lt;anarres@dreamwidth.org&gt;</p>
+
+<p>Copyright (c) 2010-2011 by Dreamwidth Studios, LLC.</p>
+
+<p>This program is free software; you may redistribute it and/or modify it under the same terms as Perl itself. For a copy of the license, please reference &#39;perldoc perlartistic&#39; or &#39;perldoc perlgpl&#39;.</p>
+
+</div><div class="footer">generated by <a href="http://metacpan.org/module/Pod::ProjectDocs">Pod::ProjectDocs</a></div></body></html>
+

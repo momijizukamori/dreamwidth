@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en" xml:lang="en">
+<head>
+<title>DW::User::Rename &mdash; Dreamwidth</title>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" /><link rel="stylesheet" href="../../podstyle.css" type="text/css" />
+</head>
+<body><div class="box">
+  <h1 class="t1">Dreamwidth</h1>
+  <table>
+    <tr>
+      <td class="label">Description</td>
+      <td class="cell">manuals and libraries</td>
+    </tr>
+  </table>
+</div>
+<div class="path">
+  <a href="../../index.html">Dreamwidth</a> &gt; Perl Modules &gt;
+  DW::User::Rename
+</div>
+<div>
+
+</div>
+
+<div class="pod">
+
+
+<ul id="index">
+  <li><a href="#NAME">NAME</a></li>
+  <li><a href="#SYNOPSIS">SYNOPSIS</a></li>
+  <li><a href="#API">API</a>
+    <ul>
+      <li><a href="#self-can_rename_to-tousername-opts">$self-&gt;can_rename_to( $tousername [, %opts ] )</a></li>
+      <li><a href="#self-rename-tousername-token-rename_token_obj-opts">$self-&gt;rename( $tousername, token =&gt; $rename_token_obj [, %opts] )</a></li>
+      <li><a href="#self-swap_usernames-touser-opts">$self-&gt;swap_usernames( $touser [, %opts ] )</a></li>
+      <li><a href="#self-_clear_from_cache">$self-&gt;_clear_from_cache</a></li>
+      <li><a href="#self-_are_same_person">$self-&gt;_are_same_person</a></li>
+      <li><a href="#self-_is_authorized_for_comm">$self-&gt;_is_authorized_for_comm</a></li>
+      <li><a href="#self-_rename-tousername-opts">$self-&gt;_rename( $tousername, %opts )</a></li>
+      <li><a href="#self-apply_rename_opts">$self-&gt;apply_rename_opts</a></li>
+      <li><a href="#self-break_redirects">$self-&gt;break_redirects</a></li>
+      <li><a href="#DW::User::Rename-create_redirect_journal">DW::User::Rename-&gt;create_redirect_journal</a></li>
+      <li><a href="#DW::User::Rename-break_email_redirection-from_user-to_user">DW::User::Rename-&gt;break_email_redirection( $from_user, $to_user )</a></li>
+      <li><a href="#self-delete_relationships">$self-&gt;delete_relationships</a></li>
+      <li><a href="#self-_rename_to_ex-tousername">$self-&gt;_rename_to_ex( $tousername )</a></li>
+    </ul>
+  </li>
+  <li><a href="#BUGS">BUGS</a></li>
+  <li><a href="#AUTHORS">AUTHORS</a></li>
+  <li><a href="#COPYRIGHT-AND-LICENSE">COPYRIGHT AND LICENSE</a></li>
+</ul>
+
+<h1 id="NAME">NAME</h1>
+
+<p>DW::User::Rename - Contains logic to handle account renaming. Based on bin/renameuser.pl, from the LiveJournal code</p>
+
+<h1 id="SYNOPSIS">SYNOPSIS</h1>
+
+<pre><code>  use DW::User::Rename;
+
+  # on a user object
+  my $u = LJ::load_user( &quot;exampleusername&quot; );
+  if ( $u-&gt;can_rename_to( &quot;to_username&quot; ) ) {
+    # print message, whatever...
+
+    # do rename
+    $u-&gt;rename( &quot;to_username&quot;, token =&gt; $token_object );
+
+    # this user object retains old name
+    # but all caches should have been cleared after the rename, so you can get
+    # an updated copy of the user when you do LJ::load_userid
+    $u = LJ::load_userid( $u-&gt;userid );
+  }
+
+  my $user_a = LJ::load_user( &quot;swap_a&quot; );
+  my $user_b = LJ::load_user( &quot;swap_b&quot; );
+  $user_a-&gt;swap_usernames( $user_b ) if $user_a-&gt;can_rename_to( $user_b-&gt;user );
+
+  # can also force a rename, which doesn&#39;t take into consideration any of the
+  # safeguards. Only call this from an admin page:
+  $u-&gt;rename( &quot;to_username&quot;, token =&gt; $token, force =&gt; 1 )</code></pre>
+
+<h1 id="API">API</h1>
+
+<h2 id="self-can_rename_to-tousername-opts"><code>$self-&gt;can_rename_to( $tousername [, %opts ] )</code></h2>
+
+<p>Return true if this user can be renamed to the given username</p>
+
+<p>Optional arguments are: =item force =&gt; bool, default false =item errors =&gt; DW::FormErrors object =item form_from =&gt; id of form label used for fromuser (for error association)</p>
+
+<h2 id="self-rename-tousername-token-rename_token_obj-opts"><code>$self-&gt;rename( $tousername, token =&gt; $rename_token_obj [, %opts] )</code></h2>
+
+<p>Rename the given user to the provided username. Requires a user name to rename to, and a token object to store the rename action data. If the username we&#39;re returning to is of an existing user then it shall be moved aside to a username of the form &quot;ex_oldusernam123&quot;. Returns 1 on success, 0 on failure</p>
+
+<p>Optional arguments are: =item force =&gt; bool, default false (passed to -&gt;can_rename_to) =item redirect =&gt; bool, default false =item errors =&gt; DW::FormErrors object =item del_watched_by/del_trusted_by/del_trusted/del_watched/del_communities =&gt; bool, default false =item redirect_email =&gt; bool, default false (also forced to false if redirect is false)</p>
+
+<h2 id="self-swap_usernames-touser-opts"><code>$self-&gt;swap_usernames( $touser [, %opts ] )</code></h2>
+
+<p>Swap the usernames of these two users.</p>
+
+<h2 id="self-_clear_from_cache"><code>$self-&gt;_clear_from_cache</code></h2>
+
+<p>Internal function to clear a user from various caches.</p>
+
+<h2 id="self-_are_same_person"><code>$self-&gt;_are_same_person</code></h2>
+
+<p>Internal function to determine whether two personal accounts are controlled by the same person</p>
+
+<h2 id="self-_is_authorized_for_comm"><code>$self-&gt;_is_authorized_for_comm</code></h2>
+
+<p>Internal function to determine whether an account can control / manage another account</p>
+
+<h2 id="self-_rename-tousername-opts"><code>$self-&gt;_rename( $tousername, %opts )</code></h2>
+
+<p>Internal function to do renames. Low-level, no error-checking on inputs. Only call this when you are sure that all conditions for a rename are satisfied. Returns 1 on success, 0 on failure.</p>
+
+<h2 id="self-apply_rename_opts"><code>$self-&gt;apply_rename_opts</code></h2>
+
+<p>Apply the stated rename options. Will log.</p>
+
+<p>Arguments are: =item from, original username (required) =item to, new username (required) =item user, user doing the work if separate from user being renamed, e.g., admin of a community (optional) =item redirect =&gt; hashref. (optional) If provided, will handle initial redirect information. If false, will leave as-is. =item del =&gt; hashref. (optional) If provided, will delete all relationships of the provided types. =item break_redirect =&gt; hashref. (optional) If provided, will break existing redirects</p>
+
+<p>redirect/break_redirect hashref: =item username, bool, forward or disconnect username. Default disconnect =item email, bool, forward or disconnect email. Default disconnect</p>
+
+<p>del hashref: =item del_trusted_by =item del_watched_by =item del_trusted =item del_watched =item del_communities</p>
+
+<h2 id="self-break_redirects"><code>$self-&gt;break_redirects</code></h2>
+
+<p>Break outgoing redirects.</p>
+
+<h2 id="DW::User::Rename-create_redirect_journal"><code>DW::User::Rename-&gt;create_redirect_journal</code></h2>
+
+<p>Set up a new user which will redirect to an existing one. Don&#39;t allow to set redirects for existing users.</p>
+
+<h2 id="DW::User::Rename-break_email_redirection-from_user-to_user"><code>DW::User::Rename-&gt;break_email_redirection( $from_user, $to_user )</code></h2>
+
+<p>Break email redirection from one user which redirects to another user</p>
+
+<h2 id="self-delete_relationships"><code>$self-&gt;delete_relationships</code></h2>
+
+<p>Delete a list of relationships. Returns a string representation of which relationships were deleted.</p>
+
+<h2 id="self-_rename_to_ex-tousername"><code>$self-&gt;_rename_to_ex( $tousername )</code></h2>
+
+<p>Internal function to do renames away from the current username. Low-level, no error-checking on inputs. Accepts a username, renames the user to a form of ex_oldusernam123.</p>
+
+<h1 id="BUGS">BUGS</h1>
+
+<h1 id="AUTHORS">AUTHORS</h1>
+
+<p>Afuna &lt;coder.dw@afunamatata.com&gt;</p>
+
+<h1 id="COPYRIGHT-AND-LICENSE">COPYRIGHT AND LICENSE</h1>
+
+<p>Copyright (c) 2010-2014 by Dreamwidth Studios, LLC.</p>
+
+<p>This program is free software; you may redistribute it and/or modify it under the same terms as Perl itself. For a copy of the license, please reference &#39;perldoc perlartistic&#39; or &#39;perldoc perlgpl&#39;.</p>
+
+</div><div class="footer">generated by <a href="http://metacpan.org/module/Pod::ProjectDocs">Pod::ProjectDocs</a></div></body></html>
+

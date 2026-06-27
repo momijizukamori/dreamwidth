@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="en" xml:lang="en">
+<head>
+<title>DW::InviteCodeRequests &mdash; Dreamwidth</title>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" /><link rel="stylesheet" href="../podstyle.css" type="text/css" />
+</head>
+<body><div class="box">
+  <h1 class="t1">Dreamwidth</h1>
+  <table>
+    <tr>
+      <td class="label">Description</td>
+      <td class="cell">manuals and libraries</td>
+    </tr>
+  </table>
+</div>
+<div class="path">
+  <a href="../index.html">Dreamwidth</a> &gt; Perl Modules &gt;
+  DW::InviteCodeRequests
+</div>
+<div>
+
+</div>
+
+<div class="pod">
+
+
+<ul id="index">
+  <li><a href="#NAME">NAME</a></li>
+  <li><a href="#SYNOPSIS">SYNOPSIS</a></li>
+  <li><a href="#API">API</a>
+    <ul>
+      <li><a href="#class-new-reqid-reqid">$class-&gt;new( reqid =&gt; $reqid )</a></li>
+      <li><a href="#class-by_user-userid-userid">$class-&gt;by_user( userid =&gt; $userid )</a></li>
+      <li><a href="#class-create-userid-userid-reason-reason">$class-&gt;create( userid =&gt; $userid, reason =&gt; $reason )</a></li>
+      <li><a href="#class-outstanding_count-userid-userid">$class-&gt;outstanding_count( userid =&gt; $userid )</a></li>
+      <li><a href="#class-outstanding">$class-&gt;outstanding</a></li>
+      <li><a href="#class-invite_sysbanned-user-u">$class-&gt;invite_sysbanned( user =&gt; $u )</a></li>
+      <li><a href="#object-accept-num_invites-num_invites">$object-&gt;accept( [num_invites =&gt; $num_invites ] )</a></li>
+      <li><a href="#object-reject">$object-&gt;reject</a></li>
+      <li><a href="#object-change_status-status-status">$object-&gt;change_status( status =&gt; $status )</a></li>
+      <li><a href="#object-id">$object-&gt;id</a></li>
+      <li><a href="#object-userid">$object-&gt;userid</a></li>
+      <li><a href="#object-status">$object-&gt;status</a></li>
+      <li><a href="#object-reason">$object-&gt;reason</a></li>
+      <li><a href="#object-timegenerate">$object-&gt;timegenerate</a></li>
+      <li><a href="#object-timeprocessed">$object-&gt;timeprocessed</a></li>
+    </ul>
+  </li>
+  <li><a href="#BUGS">BUGS</a></li>
+  <li><a href="#AUTHORS">AUTHORS</a></li>
+  <li><a href="#COPYRIGHT-AND-LICENSE">COPYRIGHT AND LICENSE</a></li>
+</ul>
+
+<h1 id="NAME">NAME</h1>
+
+<p>DW::InviteCodeRequests - Invite code request backend for Dreamwidth</p>
+
+<h1 id="SYNOPSIS">SYNOPSIS</h1>
+
+<pre><code>  use DW::InviteCodeRequests;
+
+  ## aggregate information
+  # list all outstanding requests, by all users
+  my @all_outstanding = DW::InviteCodeRequests-&gt;outstanding;
+
+
+  ## per-user information, and request creation
+  # list all of the invite code requests a user has made
+  my @user_requests = DW::InviteCodeRequests-&gt;by_user( userid =&gt; $userid );
+
+  # find out how many invite code requests a user has outstanding
+  my $outstanding_count = DW::InviteCodeRequests-&gt;outstanding_count( userid =&gt; $userid );
+
+  # create a new request for this user if they don&#39;t have outstanding requests
+  my $new_request = DW::InviteCodeRequests-&gt;create( userid =&gt; $userid, reason =&gt; $reason )
+    if ! $outstanding_count;
+
+  ## request processing
+  # load a request object
+  my $request = DW::InviteCodeRequests-&gt;new( reqid =&gt; $reqid )
+
+  # accept or reject the request
+  $request-&gt;accept( num_invites =&gt; $num_invites );
+  $request-&gt;reject;
+
+  ## request data
+  my $id = $request-&gt;id;
+  my $userid = $request-&gt;userid;
+  my $status = $request-&gt;status;    # accepted, rejected, outstanding
+  my $reason = $request-&gt;reason;
+  my $timegenerate = $request-&gt;timegenerate;   # unix timestamp
+  my $timeprocessed = $request-&gt;timeprocessed; # unix timestamp</code></pre>
+
+<h1 id="API">API</h1>
+
+<h2 id="class-new-reqid-reqid"><code>$class-&gt;new( reqid =&gt; $reqid )</code></h2>
+
+<p>Returns object for invite code request, or undef if none exists</p>
+
+<h2 id="class-by_user-userid-userid"><code>$class-&gt;by_user( userid =&gt; $userid )</code></h2>
+
+<p>Returns an array of all the requests the user has made.</p>
+
+<h2 id="class-create-userid-userid-reason-reason"><code>$class-&gt;create( userid =&gt; $userid, reason =&gt; $reason )</code></h2>
+
+<p>Create and return a request for additional invite codes, which will be put into a queue for admin review. Returns undef on failure.</p>
+
+<h2 id="class-outstanding_count-userid-userid"><code>$class-&gt;outstanding_count( userid =&gt; $userid )</code></h2>
+
+<p>Returns how many outstanding invite code requests a user has.</p>
+
+<h2 id="class-outstanding"><code>$class-&gt;outstanding</code></h2>
+
+<p>Return a list of all outstanding invite code requests.</p>
+
+<h2 id="class-invite_sysbanned-user-u"><code>$class-&gt;invite_sysbanned( user =&gt; $u )</code></h2>
+
+<p>Return whether this user is sysbanned from the invite codes system. Accepts a user object.</p>
+
+<h2 id="object-accept-num_invites-num_invites"><code>$object-&gt;accept( [num_invites =&gt; $num_invites ] )</code></h2>
+
+<p>Accept this request.</p>
+
+<h2 id="object-reject"><code>$object-&gt;reject</code></h2>
+
+<pre><code> Reject this request.</code></pre>
+
+<h2 id="object-change_status-status-status"><code>$object-&gt;change_status( status =&gt; $status )</code></h2>
+
+<p>Internal. Accepts or rejects a request.</p>
+
+<h2 id="object-id"><code>$object-&gt;id</code></h2>
+
+<p>Returns the id of this object.</p>
+
+<h2 id="object-userid"><code>$object-&gt;userid</code></h2>
+
+<p>Returns the userid of the user who made the request.</p>
+
+<h2 id="object-status"><code>$object-&gt;status</code></h2>
+
+<p>Returns the status of the request. Values can be one of &quot;accepted&quot;, &quot;rejected&quot;, &quot;outstanding&quot;.</p>
+
+<h2 id="object-reason"><code>$object-&gt;reason</code></h2>
+
+<p>Returns the user-provided reason for requesting more invite codes.</p>
+
+<h2 id="object-timegenerate"><code>$object-&gt;timegenerate</code></h2>
+
+<p>Returns the time the request was made as a unix timestamp.</p>
+
+<h2 id="object-timeprocessed"><code>$object-&gt;timeprocessed</code></h2>
+
+<p>Returns the time the request was accepted or rejected as a unix timestamp.</p>
+
+<h1 id="BUGS">BUGS</h1>
+
+<h1 id="AUTHORS">AUTHORS</h1>
+
+<p>Afuna &lt;coder.dw@afunamatata.com&gt; Pau Amma &lt;pauamma@dreamwidth.org&gt;</p>
+
+<h1 id="COPYRIGHT-AND-LICENSE">COPYRIGHT AND LICENSE</h1>
+
+<p>Copyright (c) 2009 by Dreamwidth Studios, LLC.</p>
+
+<p>This program is free software; you may redistribute it and/or modify it under the same terms as Perl itself. For a copy of the license, please reference &#39;perldoc perlartistic&#39; or &#39;perldoc perlgpl&#39;.</p>
+
+</div><div class="footer">generated by <a href="http://metacpan.org/module/Pod::ProjectDocs">Pod::ProjectDocs</a></div></body></html>
+

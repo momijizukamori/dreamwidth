@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="en" xml:lang="en">
+<head>
+<title>DW::RenameToken &mdash; Dreamwidth</title>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" /><link rel="stylesheet" href="../podstyle.css" type="text/css" />
+</head>
+<body><div class="box">
+  <h1 class="t1">Dreamwidth</h1>
+  <table>
+    <tr>
+      <td class="label">Description</td>
+      <td class="cell">manuals and libraries</td>
+    </tr>
+  </table>
+</div>
+<div class="path">
+  <a href="../index.html">Dreamwidth</a> &gt; Perl Modules &gt;
+  DW::RenameToken
+</div>
+<div>
+
+</div>
+
+<div class="pod">
+
+
+<ul id="index">
+  <li><a href="#NAME">NAME</a></li>
+  <li><a href="#SYNOPSIS">SYNOPSIS</a></li>
+  <li><a href="#API">API</a>
+    <ul>
+      <li><a href="#class-create_token">$class-&gt;create_token</a></li>
+      <li><a href="#class-create">$class-&gt;create</a></li>
+      <li><a href="#class-valid_format-string-tokentovalidate">$class-&gt;valid_format( string =&gt; tokentovalidate )</a></li>
+      <li><a href="#class-new">$class-&gt;new</a></li>
+      <li><a href="#class-by_owner_unused-userid-ownerid">$class-&gt;by_owner_unused( userid =&gt; ownerid )</a></li>
+      <li><a href="#class-by_username-user-username">$class-&gt;by_username( user =&gt; username )</a></li>
+      <li><a href="#class-_encode-id-auth">$class-&gt;_encode( $id, $auth )</a></li>
+      <li><a href="#class-decode-invite">$class-&gt;decode( $invite )</a></li>
+      <li><a href="#class-_id_encode-num">$class-&gt;_id_encode( $num )</a></li>
+      <li><a href="#class-_id_decode-id">$class-&gt;_id_decode( $id )</a></li>
+      <li><a href="#self-apply-opts">$self-&gt;apply( %opts )</a></li>
+      <li><a href="#self-revoke">$self-&gt;revoke</a></li>
+      <li><a href="#self-details">$self-&gt;details</a></li>
+      <li><a href="#self-token">$self-&gt;token</a></li>
+      <li><a href="#self-applied">$self-&gt;applied</a></li>
+      <li><a href="#self-revoked">$self-&gt;revoked</a></li>
+      <li><a href="#self-auth">$self-&gt;auth</a></li>
+      <li><a href="#self-id">$self-&gt;id</a></li>
+      <li><a href="#self-cartid-cartid">$self-&gt;cartid( [ $cartid ] )</a></li>
+      <li><a href="#self-ownerid">$self-&gt;ownerid</a></li>
+      <li><a href="#self-renuserid">$self-&gt;renuserid</a></li>
+      <li><a href="#self-fromuser">$self-&gt;fromuser</a></li>
+      <li><a href="#self-touser">$self-&gt;touser</a></li>
+      <li><a href="#self-rendate">$self-&gt;rendate</a></li>
+    </ul>
+  </li>
+  <li><a href="#BUGS">BUGS</a></li>
+  <li><a href="#AUTHORS">AUTHORS</a></li>
+  <li><a href="#COPYRIGHT-AND-LICENSE">COPYRIGHT AND LICENSE</a></li>
+</ul>
+
+<h1 id="NAME">NAME</h1>
+
+<p>DW::RenameToken - Token which can be applied to a journal to change the username.</p>
+
+<h1 id="SYNOPSIS">SYNOPSIS</h1>
+
+<pre><code>  use DW::Rename;
+
+  # create:
+  # return a DW::RenameToken object
+  my $new_token_obj = DW::RenameToken-&gt;create_token( ownerid =&gt; $u-&gt;id, cartid =&gt; $cart-&gt;id );
+
+  # convenience method which returns the string representation of the token. Same as $token_obj-&gt;token
+  my $new_token_string = DW::RenameToken-&gt;create( ownerid =&gt; $u-&gt;id, cartid =&gt; $cart-&gt;id );
+
+  # special token for internal use
+  my $internal_token = DW::RenameToken-&gt;create_token( systemtoken =&gt; 1 );
+
+
+  # try to use...
+  my $token_obj = DW::RenameToken-&gt;new( token =&gt; $POST{token} );
+  if ( $token_obj-&gt;applied ) { print &quot;Already used&quot; }
+  elsif ( $token_obj-&gt;revoked ) { print &quot;Revoked by a site admin&quot; }
+  else { $token_obj-&gt;apply( userid =&gt; $id_of_the_journal_being_renamed, from =&gt; $oldname, to =&gt; $newname ) }</code></pre>
+
+<h1 id="API">API</h1>
+
+<h2 id="class-create_token"><code>$class-&gt;create_token</code></h2>
+
+<p>Create a new rename token and return the DW::RenameToken object.</p>
+
+<h2 id="class-create"><code>$class-&gt;create</code></h2>
+
+<p>Create a new rename token and return the string token representation of the rename token</p>
+
+<p>Args =item ownerid =&gt; id of the user who gets to use the rename token =item cartid =&gt; id of the cart where this rename token was bought =item systemtoken =&gt; whether this token is owned by the system instead of a user. Used for automatically generated tokens -- manual renames, moving aside a user to ex_* etc. When this is on, the ownerid is ignored.</p>
+
+<h2 id="class-valid_format-string-tokentovalidate"><code>$class-&gt;valid_format( string =&gt; tokentovalidate )</code></h2>
+
+<p>Verifies if this could be a valid format for the rename token. Checks length and characters.</p>
+
+<h2 id="class-new"><code>$class-&gt;new</code></h2>
+
+<p>Returns object for rename token, given the token string, or undef if none exists.</p>
+
+<dl>
+
+<dt id="userid-userid-of-the-journal-being-renamed-item-from-old-username-item-to-new-username">userid =&gt; userid of the journal being renamed =item from =&gt; old username =item to =&gt; new username</dt>
+<dd>
+
+</dd>
+</dl>
+
+<h2 id="class-by_owner_unused-userid-ownerid"><code>$class-&gt;by_owner_unused( userid =&gt; ownerid )</code></h2>
+
+<p>Return a list of unused tokens for this user.</p>
+
+<h2 id="class-by_username-user-username"><code>$class-&gt;by_username( user =&gt; username )</code></h2>
+
+<p>Return a list of renames involving this username (either to this username, or from this username)</p>
+
+<h2 id="class-_encode-id-auth"><code>$class-&gt;_encode( $id, $auth )</code></h2>
+
+<p>Internal. Given a rename token id and a 13-digit auth code, returns a 20-digit all-uppercase rename token.</p>
+
+<h2 id="class-decode-invite"><code>$class-&gt;decode( $invite )</code></h2>
+
+<p>Internal. Given a rename token, break it down into its component parts: a rename token id and a 13-character auth code.</p>
+
+<h2 id="class-_id_encode-num"><code>$class-&gt;_id_encode( $num )</code></h2>
+
+<p>Internal. Converts a 32-bit unsigned integer into a fixed-width string representation in base DIGITS_LEN, based on an alphabet of letters and numbers that are not easily mistaken for each other.</p>
+
+<h2 id="class-_id_decode-id"><code>$class-&gt;_id_decode( $id )</code></h2>
+
+<p>Internal. Given an id encoding from <code>DW::RenameToken::_id_encode</code>, returns the original decimal number.</p>
+
+<h2 id="self-apply-opts"><code>$self-&gt;apply( %opts )</code></h2>
+
+<p>Record information about how this rename token was applied.</p>
+
+<h2 id="self-revoke"><code>$self-&gt;revoke</code></h2>
+
+<p>Mark as revoked in-DB</p>
+
+<h2 id="self-details"><code>$self-&gt;details</code></h2>
+
+<p>Get the details from the log for admin use. Not cached and pretty inefficient. Also, does not check for privs (leave that to the caller)</p>
+
+<h2 id="self-token"><code>$self-&gt;token</code></h2>
+
+<p>The string representation of the token (formed by a combination of the auth code and the id)</p>
+
+<h2 id="self-applied"><code>$self-&gt;applied</code></h2>
+
+<p>Whether this token has been used.</p>
+
+<h2 id="self-revoked"><code>$self-&gt;revoked</code></h2>
+
+<p>Whether this token has been revoked.</p>
+
+<h2 id="self-auth"><code>$self-&gt;auth</code></h2>
+
+<p>The auth code, randomly generated characters. Not necesarily unique.</p>
+
+<h2 id="self-id"><code>$self-&gt;id</code></h2>
+
+<p>Unique id for the rename token.</p>
+
+<h2 id="self-cartid-cartid"><code>$self-&gt;cartid( [ $cartid ] )</code></h2>
+
+<p>Gets / sets cart where we can look up payment information. May be 0, if the rename token did not pass through the payment system.</p>
+
+<h2 id="self-ownerid"><code>$self-&gt;ownerid</code></h2>
+
+<p>Owner of the rename token; the one who actually did the applying. May be different from the user who owns/bought the rename token in case of gifts, or of renaming of communities, or a system admin doing the rename</p>
+
+<h2 id="self-renuserid"><code>$self-&gt;renuserid</code></h2>
+
+<p>User id that the rename token was applied to.</p>
+
+<h2 id="self-fromuser"><code>$self-&gt;fromuser</code></h2>
+
+<p>Original username.</p>
+
+<h2 id="self-touser"><code>$self-&gt;touser</code></h2>
+
+<p>New username.</p>
+
+<h2 id="self-rendate"><code>$self-&gt;rendate</code></h2>
+
+<p>UNIX timestamp the token was used.</p>
+
+<h1 id="BUGS">BUGS</h1>
+
+<h1 id="AUTHORS">AUTHORS</h1>
+
+<p>Afuna &lt;coder.dw@afunamatata.com&gt;</p>
+
+<h1 id="COPYRIGHT-AND-LICENSE">COPYRIGHT AND LICENSE</h1>
+
+<p>Copyright (c) 2010-2014 by Dreamwidth Studios, LLC.</p>
+
+<p>This program is free software; you may redistribute it and/or modify it under the same terms as Perl itself. For a copy of the license, please reference &#39;perldoc perlartistic&#39; or &#39;perldoc perlgpl&#39;.</p>
+
+</div><div class="footer">generated by <a href="http://metacpan.org/module/Pod::ProjectDocs">Pod::ProjectDocs</a></div></body></html>
+

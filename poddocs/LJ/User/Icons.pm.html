@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+<html lang="en" xml:lang="en">
+<head>
+<title>LJ::User::Icons &mdash; Dreamwidth</title>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" /><link rel="stylesheet" href="../../podstyle.css" type="text/css" />
+</head>
+<body><div class="box">
+  <h1 class="t1">Dreamwidth</h1>
+  <table>
+    <tr>
+      <td class="label">Description</td>
+      <td class="cell">manuals and libraries</td>
+    </tr>
+  </table>
+</div>
+<div class="path">
+  <a href="../../index.html">Dreamwidth</a> &gt; Perl Modules &gt;
+  LJ::User::Icons
+</div>
+<div>
+
+</div>
+
+<div class="pod">
+
+
+<ul id="index">
+  <li>
+    <ul>
+      <li><a href="#Userpic-Related-Functions">Userpic-Related Functions</a>
+        <ul>
+          <li><a href="#u-activate_userpics">$u-&gt;activate_userpics</a></li>
+          <li><a href="#u-allpics_base">$u-&gt;allpics_base</a></li>
+          <li><a href="#u-clear_userpic_kw_map">$u-&gt;clear_userpic_kw_map</a></li>
+          <li><a href="#u-expunge_userpic-picid">$u-&gt;expunge_userpic( $picid )</a></li>
+          <li><a href="#u-get_keyword_from_mapid-mapid-opts">$u-&gt;get_keyword_from_mapid( $mapid, %opts )</a></li>
+          <li><a href="#u-get_mapid_from_keyword-kw-opts">$u-&gt;get_mapid_from_keyword( $kw, %opts )</a></li>
+          <li><a href="#u-get_picid_from_keyword-kw-default">$u-&gt;get_picid_from_keyword( $kw, $default )</a></li>
+          <li><a href="#u-get_picid_from_mapid-mapid-opts">$u-&gt;get_picid_from_mapid( $mapid, %opts )</a></li>
+          <li><a href="#u-get_userpic_count">$u-&gt;get_userpic_count</a></li>
+          <li><a href="#u-get_userpic_info-opts">$u-&gt;get_userpic_info( $opts )</a></li>
+          <li><a href="#u-get_userpic_kw_map">$u-&gt;get_userpic_kw_map</a></li>
+          <li><a href="#u-resolve_mapid_redirects-mapid-opts">$u-&gt;resolve_mapid_redirects( $mapid, %opts )</a></li>
+          <li><a href="#u-userpic">$u-&gt;userpic</a></li>
+          <li><a href="#u-userpic_have_mapid">$u-&gt;userpic_have_mapid</a></li>
+          <li><a href="#u-userpic_quota">$u-&gt;userpic_quota</a></li>
+        </ul>
+      </li>
+    </ul>
+  </li>
+</ul>
+
+<h2 id="Userpic-Related-Functions">Userpic-Related Functions</h2>
+
+<h3 id="u-activate_userpics"><code>$u-&gt;activate_userpics</code></h3>
+
+<p>Sets/unsets userpics as inactive based on account caps.</p>
+
+<h3 id="u-allpics_base"><code>$u-&gt;allpics_base</code></h3>
+
+<p>Return the base URL for the icons page.</p>
+
+<h3 id="u-clear_userpic_kw_map"><code>$u-&gt;clear_userpic_kw_map</code></h3>
+
+<p>Clears the internally cached mapping of userpics to keywords for this user.</p>
+
+<h3 id="u-expunge_userpic-picid"><code>$u-&gt;expunge_userpic( $picid )</code></h3>
+
+<p>Expunges a userpic so that the system will no longer deliver this userpic.</p>
+
+<h3 id="u-get_keyword_from_mapid-mapid-opts"><code>$u-&gt;get_keyword_from_mapid( $mapid, %opts )</code></h3>
+
+<p>Returns the keyword for the given mapid or undef if the mapid doesn&#39;t exist.</p>
+
+<p>Arguments:</p>
+
+<dl>
+
+<dt id="mapid">mapid</dt>
+<dd>
+
+</dd>
+</dl>
+
+<p>Additional options:</p>
+
+<dl>
+
+<dt id="redir_callback">redir_callback</dt>
+<dd>
+
+<p>Called if the mapping is redirected to another mapping with the following arguments</p>
+
+<p>( $u, $old_mapid, $new_mapid )</p>
+
+</dd>
+</dl>
+
+<h3 id="u-get_mapid_from_keyword-kw-opts"><code>$u-&gt;get_mapid_from_keyword( $kw, %opts )</code></h3>
+
+<p>Returns the mapid for a given keyword.</p>
+
+<p>Arguments:</p>
+
+<dl>
+
+<dt id="kw">kw</dt>
+<dd>
+
+<p>The keyword.</p>
+
+</dd>
+</dl>
+
+<p>Additional options:</p>
+
+<dl>
+
+<dt id="create">create</dt>
+<dd>
+
+<p>Should a mapid be created if one does not exist.</p>
+
+<p>Default: 0</p>
+
+</dd>
+</dl>
+
+<h3 id="u-get_picid_from_keyword-kw-default"><code>$u-&gt;get_picid_from_keyword( $kw, $default )</code></h3>
+
+<p>Returns the picid for a given keyword.</p>
+
+<dl>
+
+<dt id="kw1">kw</dt>
+<dd>
+
+<p>Keyword to look up.</p>
+
+</dd>
+<dt id="default-optional">default (optional)</dt>
+<dd>
+
+<p>Default: the users default userpic.</p>
+
+</dd>
+</dl>
+
+<h3 id="u-get_picid_from_mapid-mapid-opts"><code>$u-&gt;get_picid_from_mapid( $mapid, %opts )</code></h3>
+
+<p>Returns the picid for a given mapid.</p>
+
+<p>Arguments:</p>
+
+<dl>
+
+<dt id="mapid1">mapid</dt>
+<dd>
+
+</dd>
+</dl>
+
+<p>Additional options:</p>
+
+<dl>
+
+<dt id="default">default</dt>
+<dd>
+
+<p>Default: the users default userpic.</p>
+
+</dd>
+<dt id="redir_callback1">redir_callback</dt>
+<dd>
+
+<p>Called if the mapping is redirected to another mapping with the following arguments</p>
+
+<p>( $u, $old_mapid, $new_mapid )</p>
+
+</dd>
+</dl>
+
+<h3 id="u-get_userpic_count"><code>$u-&gt;get_userpic_count</code></h3>
+
+<p>Return the number of userpics.</p>
+
+<h3 id="u-get_userpic_info-opts"><code>$u-&gt;get_userpic_info( $opts )</code></h3>
+
+<p>Given a user, gets their userpic information</p>
+
+<p>Arguments:</p>
+
+<dl>
+
+<dt id="opts">opts</dt>
+<dd>
+
+<p>Hashref of options</p>
+
+<p>Valid options:</p>
+
+<dl>
+
+<dt id="load_comments">load_comments</dt>
+<dd>
+
+</dd>
+<dt id="load_urls">load_urls</dt>
+<dd>
+
+</dd>
+<dt id="load_descriptions">load_descriptions</dt>
+<dd>
+
+</dd>
+</dl>
+
+<p>Returns a hashref with the following keys:</p>
+
+<dl>
+
+<dt id="comment">comment</dt>
+<dd>
+
+<p>Maps a picid to a comment. May not be present if load_comments was not specified.</p>
+
+</dd>
+<dt id="description">description</dt>
+<dd>
+
+<p>Maps a picid to a description. May not be present if load_descriptions was not specified.</p>
+
+</dd>
+<dt id="kw2">kw</dt>
+<dd>
+
+<p>Maps a keyword to a pic hashref.</p>
+
+</dd>
+<dt id="kwmap">kwmap</dt>
+<dd>
+
+<p>Maps a keyword to a mapid.</p>
+
+</dd>
+<dt id="map_redir">map_redir</dt>
+<dd>
+
+<p>Maps a mapid to a diffrent mapid.</p>
+
+</dd>
+<dt id="mapid2">mapid</dt>
+<dd>
+
+<p>Maps a mapid to a pic hashref.</p>
+
+</dd>
+<dt id="mapkw">mapkw</dt>
+<dd>
+
+<p>Maps a mapid to a keyword.</p>
+
+</dd>
+<dt id="pic">pic</dt>
+<dd>
+
+<p>Maps a picid to a pic hashref.</p>
+
+</dd>
+</dl>
+
+</dd>
+</dl>
+
+<h3 id="u-get_userpic_kw_map"><code>$u-&gt;get_userpic_kw_map</code></h3>
+
+<p>Gets a mapping from userpic ids to keywords for this User.</p>
+
+<h3 id="u-resolve_mapid_redirects-mapid-opts"><code>$u-&gt;resolve_mapid_redirects( $mapid, %opts )</code></h3>
+
+<p>Resolve any mapid redirect, guarding against any redirect loops.</p>
+
+<p>Returns: new map id, or 0 if the mapping cannot be resolved.</p>
+
+<p>Arguments:</p>
+
+<dl>
+
+<dt id="mapid3">mapid</dt>
+<dd>
+
+</dd>
+</dl>
+
+<p>Additional options:</p>
+
+<dl>
+
+<dt id="redir_callback2">redir_callback</dt>
+<dd>
+
+<p>Called if the mapping is redirected to another mapping with the following arguments</p>
+
+<p>( $u, $old_mapid, $new_mapid )</p>
+
+</dd>
+</dl>
+
+<h3 id="u-userpic"><code>$u-&gt;userpic</code></h3>
+
+<p>Returns LJ::Userpic for default userpic, if it exists.</p>
+
+<h3 id="u-userpic_have_mapid"><code>$u-&gt;userpic_have_mapid</code></h3>
+
+<p>Returns true if the userpicmap keyword mappings have a mapid column ( dversion 9 or higher )</p>
+
+<h3 id="u-userpic_quota"><code>$u-&gt;userpic_quota</code></h3>
+
+<p>Returns the number of userpics the user can upload (base account type cap + bonus slots purchased)</p>
+
+</div><div class="footer">generated by <a href="http://metacpan.org/module/Pod::ProjectDocs">Pod::ProjectDocs</a></div></body></html>
+

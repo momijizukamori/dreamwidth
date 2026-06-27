@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="en" xml:lang="en">
+<head>
+<title>DW::Template::Plugin::FormHTML &mdash; Dreamwidth</title>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" /><link rel="stylesheet" href="../../../podstyle.css" type="text/css" />
+</head>
+<body><div class="box">
+  <h1 class="t1">Dreamwidth</h1>
+  <table>
+    <tr>
+      <td class="label">Description</td>
+      <td class="cell">manuals and libraries</td>
+    </tr>
+  </table>
+</div>
+<div class="path">
+  <a href="../../../index.html">Dreamwidth</a> &gt; Perl Modules &gt;
+  DW::Template::Plugin::FormHTML
+</div>
+<div>
+
+</div>
+
+<div class="pod">
+
+
+<ul id="index">
+  <li><a href="#NAME">NAME</a></li>
+  <li><a href="#SYNOPSIS">SYNOPSIS</a></li>
+  <li><a href="#METHODS">METHODS</a>
+    <ul>
+      <li><a href="#Common-Arguments">Common Arguments</a></li>
+      <li><a href="#form.button-name">[% form.button( name =... ) %]</a></li>
+      <li><a href="#form.checkbox-label-A-label-id-elementid-name-elementname">[% form.checkbox( label=&quot;A label&quot;, id=&quot;elementid&quot;, name=&quot;elementname&quot;, .... ) %]</a></li>
+      <li><a href="#form.checkbox_nested-label-A-label-id-elementid-name-elementname">[% form.checkbox_nested( label=&quot;A label&quot;, id=&quot;elementid&quot;, name=&quot;elementname&quot;, .... ) %]</a></li>
+      <li><a href="#form.hidden-name">[% form.hidden( name =... ) %]</a></li>
+      <li><a href="#form.radio-label">[% form.radio( label = ... ) %]</a></li>
+      <li><a href="#form.radio_nested-label">[% form.radio_nested( label = ... ) %]</a></li>
+      <li><a href="#form.select-label-A-Label-id-elementid-name-elementname-items-array-of-items">[% form.select( label=&quot;A Label&quot;, id=&quot;elementid&quot;, name=&quot;elementname&quot;, items=[array of items], ... ) %]</a></li>
+      <li><a href="#form.submit-name">[% form.submit( name =... ) %]</a></li>
+      <li><a href="#form.textarea-label">[% form.textarea( label=... ) %]</a></li>
+      <li><a href="#form.color-label-...-Return-a-color-picker-with-a-matching-label-if-provided.-Values-are-prepopulated-by-the-plugins-datasource">[% form.color( label=... ) %] Return a color picker with a matching label, if provided. Values are prepopulated by the plugin&#39;s datasource.</a></li>
+      <li><a href="#form.textbox-label-A-Label-id-elementid-name-elementname">[% form.textbox( label=&quot;A Label&quot;, id=&quot;elementid&quot;, name=&quot;elementname&quot;, ... ) %]</a></li>
+      <li><a href="#form.password-label-A-Label-id-elementid-name-elementname">[% form.password( label=&quot;A Label&quot;, id=&quot;elementid&quot;, name=&quot;elementname&quot;,... ) %]</a></li>
+    </ul>
+  </li>
+  <li><a href="#AUTHOR">AUTHOR</a></li>
+  <li><a href="#COPYRIGHT-AND-LICENSE">COPYRIGHT AND LICENSE</a></li>
+</ul>
+
+<h1 id="NAME">NAME</h1>
+
+<p>DW::Template::Plugin::FormHTML - Template Toolkit plugin to generate HTML elements with preset values</p>
+
+<h1 id="SYNOPSIS">SYNOPSIS</h1>
+
+<p>The form plugin generates HTML elements with attributes suitably escaped, and values automatically prepopulated, depending on the form&#39;s data field.</p>
+
+<p>The &quot;data&quot; field is a hashref, with the keys being the form element&#39;s name, and the values being the form element&#39;s desired value.</p>
+
+<p>If a &quot;formdata&quot; property is available via the context, this is used to automatically populate the plugin&#39;s data field. It may be either a hashref or an instance of Hash::MultiValue.</p>
+
+<h1 id="METHODS">METHODS</h1>
+
+<h2 id="Common-Arguments">Common Arguments</h2>
+
+<p>All methods which generate an HTML element can accept the following optional arguments:</p>
+
+<dl>
+
+<dt id="default---default-value-to-use.-Does-not-override-the-value-of-a-previous-form-submission-The-default-value-will-most-likely-come-from-settings-stored-in-the-DB.-It-may-also-be-a-hardcoded-initial-value">default - default value to use. Does not override the value of a previous form submission The default value will most likely come from settings stored in the DB. It may also be a hardcoded initial value.</dt>
+<dd>
+
+</dd>
+<dt id="value---value-to-apply-to-the-form-element.-Does-override-any-previous-form-submissions">value - value to apply to the form element. Does override any previous form submissions</dt>
+<dd>
+
+</dd>
+<dt id="selected---for-checkbox-radio---whether-the-form-element-was-selected-or-not---for-select---the-selected-option-in-the-dropdown">selected - (for checkbox, radio) - whether the form element was selected or not - (for select) - the selected option in the dropdown</dt>
+<dd>
+
+</dd>
+<dt id="label---text-for-a-label-which-is-paired-with-the-form-element-if-an-id-is-provided">label - text for a label, which is paired with the form element if an id is provided</dt>
+<dd>
+
+</dd>
+<dt id="labelclass---class-for-a-label">labelclass - class for a label</dt>
+<dd>
+
+</dd>
+<dt id="id---id-of-the-element.-Highly-recommended-especially-if-you-have-a-label">id - id of the element. Highly recommended, especially if you have a label</dt>
+<dd>
+
+</dd>
+<dt id="name---name-of-the-form-element.-Youll-probably-really-want-this">name - name of the form element. You&#39;ll probably really want this</dt>
+<dd>
+
+</dd>
+<dt id="class---CSS-class-of-the-form-element">class - CSS class of the form element</dt>
+<dd>
+
+</dd>
+<dt id="other-valid-HTML-attributes">(other valid HTML attributes)</dt>
+<dd>
+
+</dd>
+</dl>
+
+<h2 id="form.button-name">[% form.button( name =... ) %]</h2>
+
+<p>Return a generic button for use as a script target. Values are prepopulated by the plugin&#39;s datasource.</p>
+
+<h2 id="form.checkbox-label-A-label-id-elementid-name-elementname">[% form.checkbox( label=&quot;A label&quot;, id=&quot;elementid&quot;, name=&quot;elementname&quot;, .... ) %]</h2>
+
+<p>Return a checkbox with a matching label, if provided. Values are prepopulated by the plugin&#39;s datasource.</p>
+
+<h2 id="form.checkbox_nested-label-A-label-id-elementid-name-elementname">[% form.checkbox_nested( label=&quot;A label&quot;, id=&quot;elementid&quot;, name=&quot;elementname&quot;, .... ) %]</h2>
+
+<p>Return a checkbox nested within a label, if provided. Values are prepopulated by the plugin&#39;s datasource.</p>
+
+<p>Additional option:</p>
+
+<dl>
+
+<dt id="remember_old_state---1-if-you-want-to-include-a-hidden-element-containing-the-checkboxs-value-on-page-load.-Useful-for-cases-when-you-have-a-list-of-items-and-you-want-to-know-if-the-checkbox-started-out-unchecked.-When-its-unchecked-the-checkbox-doesnt-get-submitted-equivalent-to-it-not-being-on-the-page-in-the-first-place.-So-we-might-want-to-keep-track-of-the-old-value-so-we-remember-that-we-need-to-handle-the-toggle">remember_old_state - 1 if you want to include a hidden element containing the checkbox&#39;s value on page load. Useful for cases when you have a list of items, and you want to know if the checkbox started out unchecked. When it&#39;s unchecked, the checkbox doesn&#39;t get submitted, equivalent to it not being on the page in the first place. So we might want to keep track of the old value so we &quot;remember&quot; that we need to handle the toggle</dt>
+<dd>
+
+</dd>
+</dl>
+
+<h2 id="form.hidden-name">[% form.hidden( name =... ) %]</h2>
+
+<p>Return a hidden form element. Values are prepopulated by the plugin&#39;s datasource.</p>
+
+<h2 id="form.radio-label">[% form.radio( label = ... ) %]</h2>
+
+<p>Return a radiobutton with a matching label, if provided. Values are prepopulated by the plugin&#39;s datasource.</p>
+
+<h2 id="form.radio_nested-label">[% form.radio_nested( label = ... ) %]</h2>
+
+<p>Return a radiobutton nested within a label, if provided. Values are prepopulated by the plugin&#39;s datasource.</p>
+
+<h2 id="form.select-label-A-Label-id-elementid-name-elementname-items-array-of-items">[% form.select( label=&quot;A Label&quot;, id=&quot;elementid&quot;, name=&quot;elementname&quot;, items=[array of items], ... ) %]</h2>
+
+<p>Return a select dropdown with a list of options, and matching label if provided. Values are prepopulated by the plugin&#39;s datasource.</p>
+
+<h2 id="form.submit-name">[% form.submit( name =... ) %]</h2>
+
+<p>Return a button for submitting a form. Values are prepopulated by the plugin&#39;s datasource.</p>
+
+<h2 id="form.textarea-label">[% form.textarea( label=... ) %]</h2>
+
+<p>Return a textarea with a matching label, if provided. Values are prepopulated by the plugin&#39;s datasource.</p>
+
+<h2 id="form.color-label-...-Return-a-color-picker-with-a-matching-label-if-provided.-Values-are-prepopulated-by-the-plugins-datasource">[% form.color( label=... ) %] Return a color picker with a matching label, if provided. Values are prepopulated by the plugin&#39;s datasource.</h2>
+
+<h2 id="form.textbox-label-A-Label-id-elementid-name-elementname">[% form.textbox( label=&quot;A Label&quot;, id=&quot;elementid&quot;, name=&quot;elementname&quot;, ... ) %]</h2>
+
+<p>Return a textbox (input type=&quot;text&quot;) with a matching label, if provided. Values are prepopulated by the plugin&#39;s datasource.</p>
+
+<h2 id="form.password-label-A-Label-id-elementid-name-elementname">[% form.password( label=&quot;A Label&quot;, id=&quot;elementid&quot;, name=&quot;elementname&quot;,... ) %]</h2>
+
+<p>Return a password field with a matching label, if provided. Values are never prepopulated</p>
+
+<h1 id="AUTHOR">AUTHOR</h1>
+
+<dl>
+
+<dt id="Afuna-coder.dw-afunamatata.com">Afuna &lt;coder.dw@afunamatata.com&gt;</dt>
+<dd>
+
+</dd>
+</dl>
+
+<h1 id="COPYRIGHT-AND-LICENSE">COPYRIGHT AND LICENSE</h1>
+
+<p>Copyright (c) 2011 by Dreamwidth Studios, LLC.</p>
+
+<p>This program is free software; you may redistribute it and/or modify it under the same terms as Perl itself. For a copy of the license, please reference &#39;perldoc perlartistic&#39; or &#39;perldoc perlgpl&#39;.</p>
+
+</div><div class="footer">generated by <a href="http://metacpan.org/module/Pod::ProjectDocs">Pod::ProjectDocs</a></div></body></html>
+

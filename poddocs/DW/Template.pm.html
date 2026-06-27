@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="en" xml:lang="en">
+<head>
+<title>DW::Template &mdash; Dreamwidth</title>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" /><link rel="stylesheet" href="../podstyle.css" type="text/css" />
+</head>
+<body><div class="box">
+  <h1 class="t1">Dreamwidth</h1>
+  <table>
+    <tr>
+      <td class="label">Description</td>
+      <td class="cell">manuals and libraries</td>
+    </tr>
+  </table>
+</div>
+<div class="path">
+  <a href="../index.html">Dreamwidth</a> &gt; Perl Modules &gt;
+  DW::Template
+</div>
+<div>
+
+</div>
+
+<div class="pod">
+
+
+<ul id="index">
+  <li><a href="#NAME">NAME</a></li>
+  <li><a href="#SYNOPSIS">SYNOPSIS</a></li>
+  <li><a href="#API">API</a>
+    <ul>
+      <li><a href="#class-template_string-filename-opts-extra">$class-&gt;template_string( $filename, $opts, $extra )</a></li>
+      <li><a href="#class-cached_template_string-key-filename-opts_subref-cache_opts-extra">$class-&gt;cached_template_string( $key, $filename, $opts_subref, $cache_opts, $extra )</a></li>
+      <li><a href="#class-render_cached_template-key-filename-subref-extra">$class-&gt;render_cached_template( $key, $filename, $subref, $extra )</a></li>
+      <li><a href="#class-render_template-filename-opts-extra">$class-&gt;render_template( $filename, $opts, $extra )</a></li>
+      <li><a href="#class-render_template_misc-filename-opts-extra">$class-&gt;render_template_misc( $filename, $opts, $extra )</a></li>
+      <li><a href="#class-render_string-string-extra">$class-&gt;render_string( $string, $extra )</a></li>
+      <li><a href="#class-render_scheme-sitescheme-body-sections">$class-&gt;render_scheme( $sitescheme, $body, $sections )</a></li>
+    </ul>
+  </li>
+  <li><a href="#AUTHOR">AUTHOR</a></li>
+  <li><a href="#COPYRIGHT-AND-LICENSE">COPYRIGHT AND LICENSE</a></li>
+</ul>
+
+<h1 id="NAME">NAME</h1>
+
+<p>DW::Template - Template Toolkit helpers for Apache2.</p>
+
+<h1 id="SYNOPSIS">SYNOPSIS</h1>
+
+<h1 id="API">API</h1>
+
+<h2 id="class-template_string-filename-opts-extra"><code>$class-&gt;template_string( $filename, $opts, $extra )</code></h2>
+
+<p>Render a template to a string.</p>
+
+<h2 id="class-cached_template_string-key-filename-opts_subref-cache_opts-extra"><code>$class-&gt;cached_template_string( $key, $filename, $opts_subref, $cache_opts, $extra )</code></h2>
+
+<p>Render a template to a string -- optionally fragment caching it. $opts_subref returns the options for template_string.</p>
+
+<p>fragment opts:</p>
+
+<dl>
+
+<dt id="lock_failed---The-text-returned-by-this-subref-is-returned-if-the-lock-is-failed-and-the-grace-period-is-up"><b> lock_failed </b> - The text returned by this subref is returned if the lock is failed and the grace period is up.</dt>
+<dd>
+
+</dd>
+<dt id="expire---Number-of-seconds-the-fragment-is-valid-for"><b> expire </b> - Number of seconds the fragment is valid for</dt>
+<dd>
+
+</dd>
+<dt id="grace_period---Number-of-seconds-that-an-expired-fragment-could-still-be-served-if-the-lock-is-in-place"><b> grace_period </b> - Number of seconds that an expired fragment could still be served if the lock is in place</dt>
+<dd>
+
+</dd>
+</dl>
+
+<h2 id="class-render_cached_template-key-filename-subref-extra"><code>$class-&gt;render_cached_template( $key, $filename, $subref, $extra )</code></h2>
+
+<p>Render a template inside the sitescheme or alone.</p>
+
+<p>See render_template, except note that the opts hash is returned by opts_subref if it&#39;s needed.</p>
+
+<p>$cache_opts can contain:</p>
+
+<dl>
+
+<dt id="no_sitescheme-render-alone"><b> no_sitescheme </b> == render alone</dt>
+<dd>
+
+</dd>
+<dt id="title-windowtitle-head-bodyopts-...-text-to-get-thrown-in-the-section-if-inside-sitescheme"><b> title / windowtitle / head / bodyopts / ... </b> == text to get thrown in the section if inside sitescheme</dt>
+<dd>
+
+</dd>
+<dt id="lock_failed-subref-for-lock-failed"><b> lock_failed </b> = subref for lock failed.</dt>
+<dd>
+
+</dd>
+<dt id="expire---Number-of-seconds-the-fragment-is-valid-for1"><b> expire </b> - Number of seconds the fragment is valid for</dt>
+<dd>
+
+</dd>
+<dt id="grace_period---Number-of-seconds-that-an-expired-fragment-could-still-be-served-if-the-lock-is-in-place1"><b> grace_period </b> - Number of seconds that an expired fragment could still be served if the lock is in place</dt>
+<dd>
+
+</dd>
+</dl>
+
+<h2 id="class-render_template-filename-opts-extra"><code>$class-&gt;render_template( $filename, $opts, $extra )</code></h2>
+
+<p>Render a template inside the sitescheme or alone.</p>
+
+<p>$extra can contain:</p>
+
+<dl>
+
+<dt id="no_sitescheme-render-alone1"><b> no_sitescheme </b> == render alone</dt>
+<dd>
+
+</dd>
+<dt id="title-windowtitle-head-bodyopts-...-text-to-get-thrown-in-the-section-if-inside-sitescheme1"><b> title / windowtitle / head / bodyopts / ... </b> == text to get thrown in the section if inside sitescheme</dt>
+<dd>
+
+</dd>
+</dl>
+
+<h2 id="class-render_template_misc-filename-opts-extra"><code>$class-&gt;render_template_misc( $filename, $opts, $extra )</code></h2>
+
+<p>Render a template inside the sitescheme or alone. This can also be safely called ( with some work on the other side ) from a BML context and still spit the content where required. ( Note, the &quot;alone&quot; bit will be ignored from BML contexts )</p>
+
+<p>Can safely directly return this from either trans/Controller, internal journal page generation or (most) BML contexts.</p>
+
+<p>$extra can contain:</p>
+
+<dl>
+
+<dt id="no_sitescheme-render-alone2"><b> no_sitescheme </b> == render alone</dt>
+<dd>
+
+<ul>
+
+<p>This will be ignored for &#39;bml&#39; scopes.</p>
+
+</ul>
+
+</dd>
+<dt id="title-windowtitle-head-bodyopts-...-text-to-get-thrown-in-the-section-if-inside-sitescheme2"><b> title / windowtitle / head / bodyopts / ... </b> == text to get thrown in the section if inside sitescheme</dt>
+<dd>
+
+</dd>
+<dt id="scope-Scope-accepts-nothing-bml-or-journal"><b> scope </b> = Scope, accepts nothing, &#39;bml&#39;, or &#39;journal&#39;</dt>
+<dd>
+
+</dd>
+<dt id="scope_data-Depends-on-scope"><b> scope_data </b> = Depends on <b> scope </b></dt>
+<dd>
+
+<dl>
+
+<dt id="bml-Hashref-of-scalar-refs-of-where-to-throw-the-sections"><b> bml </b> Hashref of scalar-refs of where to throw the sections</dt>
+<dd>
+
+</dd>
+<dt id="journal-opts-hashref-passed-into-LJ::make_journal-and-beyond"><b> journal </b> $opts hashref passed into LJ::make_journal and beyond.</dt>
+<dd>
+
+</dd>
+</dl>
+
+</dd>
+</dl>
+
+<h2 id="class-render_string-string-extra"><code>$class-&gt;render_string( $string, $extra )</code></h2>
+
+<p>Render a string inside the sitescheme or alone.</p>
+
+<p>$extra can contain:</p>
+
+<dl>
+
+<dt id="no_sitescheme-render-alone3"><b> no_sitescheme </b> == render alone</dt>
+<dd>
+
+<ul>
+
+<p>If you are just printing text or other data, do not call DW::Template-&gt;render_string and instead just $r-&gt;print and return $r-&gt;OK.</p>
+
+<p>This is mostly for being used from render_template.</p>
+
+</ul>
+
+</dd>
+<dt id="title-windowtitle-head-bodyopts-...-text-to-get-thrown-in-the-section-if-inside-sitescheme3"><b> title / windowtitle / head / bodyopts / ... </b> == text to get thrown in the section if inside sitescheme</dt>
+<dd>
+
+</dd>
+</dl>
+
+<h2 id="class-render_scheme-sitescheme-body-sections"><code>$class-&gt;render_scheme( $sitescheme, $body, $sections )</code></h2>
+
+<p>Render the body and sections in a TT sitescheme</p>
+
+<dl>
+
+<dt id="sitescheme"><b> sitescheme </b></dt>
+<dd>
+
+<p>A DW::SiteScheme object</p>
+
+</dd>
+</dl>
+
+<h1 id="AUTHOR">AUTHOR</h1>
+
+<dl>
+
+<dt id="Andrea-Nall-anall-andreanall.com">Andrea Nall &lt;anall@andreanall.com&gt;</dt>
+<dd>
+
+</dd>
+</dl>
+
+<h1 id="COPYRIGHT-AND-LICENSE">COPYRIGHT AND LICENSE</h1>
+
+<p>Copyright (c) 2009-2011 by Dreamwidth Studios, LLC.</p>
+
+<p>This program is free software; you may redistribute it and/or modify it under the same terms as Perl itself. For a copy of the license, please reference &#39;perldoc perlartistic&#39; or &#39;perldoc perlgpl&#39;.</p>
+
+</div><div class="footer">generated by <a href="http://metacpan.org/module/Pod::ProjectDocs">Pod::ProjectDocs</a></div></body></html>
+

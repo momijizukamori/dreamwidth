@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en" xml:lang="en">
+<head>
+<title>DW::Logic::UserLinkBar &mdash; Dreamwidth</title>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" /><link rel="stylesheet" href="../../podstyle.css" type="text/css" />
+</head>
+<body><div class="box">
+  <h1 class="t1">Dreamwidth</h1>
+  <table>
+    <tr>
+      <td class="label">Description</td>
+      <td class="cell">manuals and libraries</td>
+    </tr>
+  </table>
+</div>
+<div class="path">
+  <a href="../../index.html">Dreamwidth</a> &gt; Perl Modules &gt;
+  DW::Logic::UserLinkBar
+</div>
+<div>
+
+</div>
+
+<div class="pod">
+
+
+<ul id="index">
+  <li><a href="#NAME">NAME</a></li>
+  <li><a href="#SYNOPSIS">SYNOPSIS</a></li>
+  <li><a href="#API">API</a>
+    <ul>
+      <li><a href="#u-user_link_bar-remote-opts">$u-&gt;user_link_bar( $remote, %opts )</a></li>
+      <li><a href="#obj-get_links-funcname-funcname2">$obj-&gt;get_links( &quot;funcname&quot;, &quot;funcname2&quot;, ... )</a></li>
+      <li><a href="#obj-manage_membership">$obj-&gt;manage_membership</a></li>
+      <li><a href="#obj-trust">$obj-&gt;trust</a></li>
+      <li><a href="#obj-watch">$obj-&gt;watch</a></li>
+      <li><a href="#obj-post">$obj-&gt;post</a></li>
+      <li><a href="#obj-track">$obj-&gt;track</a></li>
+      <li><a href="#obj-message">$obj-&gt;message</a></li>
+      <li><a href="#obj-tellafriend">$obj-&gt;tellafriend</a></li>
+      <li><a href="#obj-memories">$obj-&gt;memories</a></li>
+      <li><a href="#obj-search">$obj-&gt;search</a></li>
+      <li><a href="#obj-buyaccount">$obj-&gt;buyaccount</a></li>
+    </ul>
+  </li>
+  <li><a href="#BUGS">BUGS</a></li>
+  <li><a href="#AUTHORS">AUTHORS</a></li>
+  <li><a href="#COPYRIGHT-AND-LICENSE">COPYRIGHT AND LICENSE</a></li>
+</ul>
+
+<h1 id="NAME">NAME</h1>
+
+<p>DW::Logic::UserLinkBar - This module provides logic for rendering the user link bar on various pages.</p>
+
+<h1 id="SYNOPSIS">SYNOPSIS</h1>
+
+<pre><code>  use DW::Logic::UserLinkBar;
+
+  # initialize the object
+  my $user_link_bar = $u-&gt;user_link_bar( $remote, [class_prefix =&gt; $context ] );
+  
+  # get links in bulk
+  my @links = $user_link_bar-&gt;get_links( &quot;manage_membership&quot;, &quot;trust&quot;, ... );
+
+  # get links apiece
+  my $link;
+  $link = $user_link_bar-&gt;manage_membership;
+  $link = $user_link_bar-&gt;trust;
+  $link = $user_link_bar-&gt;watch;
+  $link = $user_link_bar-&gt;post;
+  $link = $user_link_bar-&gt;track;
+  $link = $user_link_bar-&gt;message;
+  $link = $user_link_bar-&gt;tellafriend;
+  $link = $user_link_bar-&gt;memories;
+  $link = $user_link_bar-&gt;search;</code></pre>
+
+<h1 id="API">API</h1>
+
+<h2 id="u-user_link_bar-remote-opts"><code>$u-&gt;user_link_bar( $remote, %opts )</code></h2>
+
+<p>Returns a new user link bar object.</p>
+
+<h2 id="obj-get_links-funcname-funcname2"><code>$obj-&gt;get_links( &quot;funcname&quot;, &quot;funcname2&quot;, ... )</code></h2>
+
+<p>Given a list of keys corresponding to the user link bar functions, return an array of hashrefs containing link information.</p>
+
+<p>( { url =&gt; &quot;http://...&quot;, title =&gt; &quot;Something&quot; image =&gt; &quot;http://...&quot;, text =&gt; &quot;More Text&quot;, class =&gt; &quot;.css.class&quot;, }, { ... }, ... )</p>
+
+<h2 id="obj-manage_membership"><code>$obj-&gt;manage_membership</code></h2>
+
+<p>Returns a hashref with the appropriate icon/link/text for joining/leaving a community</p>
+
+<h2 id="obj-trust"><code>$obj-&gt;trust</code></h2>
+
+<p>Returns a hashref with the appropriate icon/link/text for adding a journal to your trust list.</p>
+
+<h2 id="obj-watch"><code>$obj-&gt;watch</code></h2>
+
+<p>Returns a hashref with the appropriate icon/link/text for adding a journal to your watch list.</p>
+
+<h2 id="obj-post"><code>$obj-&gt;post</code></h2>
+
+<p>Returns a hashref with the appropriate icon/link/text for posting an entry to this journal.</p>
+
+<h2 id="obj-track"><code>$obj-&gt;track</code></h2>
+
+<p>Returns a hashref with the appropriate icon/link/text for tracking this journal</p>
+
+<h2 id="obj-message"><code>$obj-&gt;message</code></h2>
+
+<p>Returns a hashref with the appropriate icon/link/text for sending a PM to this user.</p>
+
+<h2 id="obj-tellafriend"><code>$obj-&gt;tellafriend</code></h2>
+
+<p>Returns a hashref with the appropriate icon/link/text for telling a friend about this journal.</p>
+
+<h2 id="obj-memories"><code>$obj-&gt;memories</code></h2>
+
+<p>Returns a hashref with the appropriate icon/link/text for viewing this user&#39;s memories.</p>
+
+<h2 id="obj-search"><code>$obj-&gt;search</code></h2>
+
+<p>Returns a hashref with the appropriate icon/link/text for searching this journal.</p>
+
+<h2 id="obj-buyaccount"><code>$obj-&gt;buyaccount</code></h2>
+
+<p>Returns a hashref with the appropriate icon/link/text for buying this user a paid account.</p>
+
+<h1 id="BUGS">BUGS</h1>
+
+<h1 id="AUTHORS">AUTHORS</h1>
+
+<p>Janine Smith &lt;janine@netrophic.com&gt; Afuna &lt;coder.dw@afunamatata.com&gt;</p>
+
+<h1 id="COPYRIGHT-AND-LICENSE">COPYRIGHT AND LICENSE</h1>
+
+<p>Copyright (c) 2009 by Dreamwidth Studios, LLC.</p>
+
+<p>This program is free software; you may redistribute it and/or modify it under the same terms as Perl itself. For a copy of the license, please reference &#39;perldoc perlartistic&#39; or &#39;perldoc perlgpl&#39;.</p>
+
+</div><div class="footer">generated by <a href="http://metacpan.org/module/Pod::ProjectDocs">Pod::ProjectDocs</a></div></body></html>
+

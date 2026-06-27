@@ -1,0 +1,385 @@
+<!DOCTYPE html>
+<html lang="en" xml:lang="en">
+<head>
+<title>LJ::Widget &mdash; Dreamwidth</title>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" /><link rel="stylesheet" href="../podstyle.css" type="text/css" />
+</head>
+<body><div class="box">
+  <h1 class="t1">Dreamwidth</h1>
+  <table>
+    <tr>
+      <td class="label">Description</td>
+      <td class="cell">manuals and libraries</td>
+    </tr>
+  </table>
+</div>
+<div class="path">
+  <a href="../index.html">Dreamwidth</a> &gt; Perl Modules &gt;
+  LJ::Widget
+</div>
+<div>
+
+</div>
+
+<div class="pod">
+
+
+<ul id="index">
+  <li><a href="#NAME">NAME</a></li>
+  <li><a href="#SYNOPSIS">SYNOPSIS</a></li>
+  <li><a href="#DESCRIPTION">DESCRIPTION</a></li>
+  <li><a href="#CONSTRUCTOR">CONSTRUCTOR</a></li>
+  <li><a href="#METHODS">METHODS</a>
+    <ul>
+      <li><a href="#AJAX-Related-Methods">AJAX-Related Methods</a></li>
+      <li><a href="#Flags-for-Widgets">Flags for Widgets</a></li>
+      <li><a href="#Form-Utility-Methods">Form Utility Methods</a></li>
+      <li><a href="#Translation-String-Methods">Translation String Methods</a></li>
+    </ul>
+  </li>
+  <li><a href="#EXAMPLES">EXAMPLES</a></li>
+</ul>
+
+<h1 id="NAME">NAME</h1>
+
+<p>LJ::Widget - parent class for areas of contained information and code (widgets) to be used on one or more BML pages</p>
+
+<h1 id="SYNOPSIS">SYNOPSIS</h1>
+
+<pre><code>    LJ::Widget::WidgetName-&gt;render;
+    LJ::Widget::AnotherWidget-&gt;render( options );
+
+    LJ::Widget-&gt;handle_post(\%POST, qw( WidgetName AnotherWidget ));
+
+    my $widget = LJ::Widget::AjaxWidget-&gt;new;
+    $headextra .= $widget-&gt;wrapped_js( options );
+    $widget-&gt;render;</code></pre>
+
+<h1 id="DESCRIPTION">DESCRIPTION</h1>
+
+<p>This is the parent class for widgets. A widget is a part of a BML page that can be relatively self-contained and is sometimes used on multiple pages. Using a widget instead of putting the code directly in a BML page allows more flexibility in terms of re-using code and readability. It is much easier to read and understand a BML page with calls to a couple of widgets than a BML page with large blocks of unrelated code.</p>
+
+<p>Widgets can do POST actions to themselves or to other widgets, but the goal is to keep the function of each widget relatively simple.</p>
+
+<p>POST form elements in a widget are given widget-specific prefixes in their names. These are then removed when the different POST values are being checked in <code>handle_post</code>.</p>
+
+<p>AJAX POSTs go to the endpoint &quot;widget.bml&quot;, and they perform form auths differently than non-AJAX POSTs do.</p>
+
+<p>Strings within widgets can and should be English-stripped. Usually, these strings are defined within en.dat or en_LJ.dat with the string name of &quot;widget.$widgetname.$stringname&quot;. However, these strings can also be defined in BML pages, which will override what&#39;s defined in en(_LJ).dat.</p>
+
+<p>Strings in the &quot;widget&quot; ML domain get there when a user inputs text that should be translatable in a widget web form on the site.</p>
+
+<p>In almost all cases, methods are called on subclasses of this parent class, and not on the parent class itself. It is explicitly noted when a method should be called on the parent class instead of on a subclass.</p>
+
+<p>Also, methods that can be and are often subclassed are noted as such. Most other methods can be subclassed, but it&#39;s probably not particularly useful to do so.</p>
+
+<h1 id="CONSTRUCTOR">CONSTRUCTOR</h1>
+
+<dl>
+
+<dt id="new"><code>new</code></dt>
+<dd>
+
+<p>This is only needed when you want to create a widget without actually rendering it yet. It is usually called with no options, but you can pass an <code>id</code> to give the widget a defined ID (number) instead of an auto-generated one (useful if you&#39;re using AJAX and widgets get re-rendered and you don&#39;t want IDs to change).</p>
+
+</dd>
+</dl>
+
+<h1 id="METHODS">METHODS</h1>
+
+<dl>
+
+<dt id="render"><code>render</code></dt>
+<dd>
+
+<p>Renders a widget&#39;s display. It wraps the output of <code>render_body</code> with a div and includes the files defined in <code>need_res</code>. It will return an empty string if <code>should_render</code> returns false. Options passed to it will be passed on to <code>render_body</code>.</p>
+
+</dd>
+<dt id="render_body"><code>render_body</code></dt>
+<dd>
+
+<p>This is called when <code>render</code> is called. It returns the HTML/BML that should be printed when a widget is rendered. Can be subclassed.</p>
+
+</dd>
+<dt id="should_render"><code>should_render</code></dt>
+<dd>
+
+<p>Returns if this widget should render or not. It cannot be passed any parameters. It is called automatically when <code>render</code> is called, and by default it will return false if the widget is disabled via <code>is_disabled</code>. Can be subclassed.</p>
+
+</dd>
+<dt id="handle_post"><code>handle_post</code></dt>
+<dd>
+
+<p>Code that&#39;s run when a widget that POSTs is submitted. This should be called on the parent class instead of on the specific widget, and the widget(s) you want to be handled should be passed as parameters. The parent class method calls the subclass methods appropriately. Returns the hash returned from the last processed widget. Can be subclassed.</p>
+
+</dd>
+<dt id="handle_post_and_render"><code>handle_post_and_render</code></dt>
+<dd>
+
+<p>This is called on the parent class, and it handles the POST for a single given widget and returns the results of that POST to <code>render</code>.</p>
+
+</dd>
+<dt id="need_res"><code>need_res</code></dt>
+<dd>
+
+<p>Returns a list of paths to static files that should be included on the page that the widget is called on (i.e. CSS and JS). Can be subclassed.</p>
+
+</dd>
+<dt id="need_res_opts"><code>need_res_opts</code></dt>
+<dd>
+
+<p>Returns a hash of opts that can be passed to need_res -- for example, ( group =&gt; &#39;jquery&#39; ). Can be subclassed.</p>
+
+</dd>
+<dt id="post_fields_by_widget"><code>post_fields_by_widget</code></dt>
+<dd>
+
+<p>Returns a hashref of the POST fields for each widget that was handled via <code>handle_post</code> when a POST action occurs. Generally only used as a helper method. Should be called on the parent class.</p>
+
+</dd>
+<dt id="post_fields_of_widget"><code>post_fields_of_widget</code></dt>
+<dd>
+
+<p>Returns the POST fields for a specific given widget handled via <code>handle_post</code>. Should be called on the parent class.</p>
+
+</dd>
+<dt id="post_fields"><code>post_fields</code></dt>
+<dd>
+
+<p>Same as <code>post_fields_of_widget</code>, but returns the POST fields for the widget it&#39;s called on.</p>
+
+</dd>
+<dt id="use_specific_form_fields"><code>use_specific_form_fields</code></dt>
+<dd>
+
+<p>Given the POST values and a list of specific fields, this will allow those fields to be passed into the widget&#39;s <code>handle_post</code> even if they don&#39;t have the necessary widget prefix on them. This is currently used for widgets that have a reCAPTCHA module, since you can&#39;t modify the name of the fields for it.</p>
+
+</dd>
+<dt id="get_args"><code>get_args</code></dt>
+<dd>
+
+<p>Returns the GET args of the page the widget is on.</p>
+
+</dd>
+<dt id="get_effective_remote"><code>get_effective_remote</code></dt>
+<dd>
+
+<p>If the widget is an <code>authas</code> widget, it returns the currently authenticated user (remote or a journal remote manages). Otherwise, it returns remote.</p>
+
+</dd>
+<dt id="handle_error"><code>handle_error</code></dt>
+<dd>
+
+<p>Pushes an error onto a given arrayref of errors (or @BMLCodeBlock::errors) for display.</p>
+
+</dd>
+<dt id="error_list"><code>error_list</code></dt>
+<dd>
+
+<p>Returns a list of errors for a widget, using <code>handle_error</code> to build up the list in @BMLCodeBlock::errors.</p>
+
+</dd>
+<dt id="is_disabled"><code>is_disabled</code></dt>
+<dd>
+
+<p>Returns if a widget is disabled or not based on a config hash value.</p>
+
+</dd>
+<dt id="subclass"><code>subclass</code></dt>
+<dd>
+
+<p>Given a widget package name, returns the name of the widget subclass. Example: giving &quot;LJ::Widget::WidgetName&quot; would return &quot;WidgetName&quot;.</p>
+
+</dd>
+<dt id="widget_ele_id"><code>widget_ele_id</code></dt>
+<dd>
+
+<p>Returns the HTML id attribute for this widget.</p>
+
+</dd>
+<dt id="decl_params"><code>decl_params</code></dt>
+<dd>
+
+<p>Wrapper around BML::decl_params().</p>
+
+</dd>
+<dt id="form_auth"><code>form_auth</code></dt>
+<dd>
+
+<p>Wrapper around LJ::form_auth().</p>
+
+</dd>
+</dl>
+
+<h2 id="AJAX-Related-Methods">AJAX-Related Methods</h2>
+
+<dl>
+
+<dt id="js"><code>js</code></dt>
+<dd>
+
+<p>Returns a string of JavaScript for a widget so it does not have to be included as a separate file. Can be subclassed.</p>
+
+</dd>
+<dt id="wrapped_js"><code>wrapped_js</code></dt>
+<dd>
+
+<p>Returns the JavaScript that&#39;s in <code>js</code>. Also sets up JavaScript so that AJAX widgets can be used. If a <code>page_js_obj</code> parameter is passed in, its value is used to create a JavaScript variable that holds the widget JavaScript object in it.</p>
+
+</dd>
+</dl>
+
+<h2 id="Flags-for-Widgets">Flags for Widgets</h2>
+
+<dl>
+
+<dt id="ajax"><code>ajax</code></dt>
+<dd>
+
+<p>Returns if the widget can accept AJAX POSTs or not. Can be subclassed.</p>
+
+</dd>
+<dt id="can_fake_ajax_post"><code>can_fake_ajax_post</code></dt>
+<dd>
+
+<p>Returns if a widget can perform AJAX requests via GET instead of POST or not. Can be subclassed.</p>
+
+</dd>
+<dt id="authas"><code>authas</code></dt>
+<dd>
+
+<p>Returns if a widget supports authas authentication or not (in GET or POST). Can be subclassed.</p>
+
+</dd>
+</dl>
+
+<h2 id="Form-Utility-Methods">Form Utility Methods</h2>
+
+<dl>
+
+<dt id="start_form"><code>start_form</code></dt>
+<dd>
+
+<p>Returns HTML for the start of a form (including form auth) that POSTs to a widget. Can be passed options similar to that of htmlcontrols methods.</p>
+
+</dd>
+<dt id="end_form"><code>end_form</code></dt>
+<dd>
+
+<p>Returns HTML for the end of a form that POSTs to a widget.</p>
+
+</dd>
+<dt id="html_text"><code>html_text</code></dt>
+<dd>
+
+<p>Widget-specific HTML text field. Must be used in place of LJ::html_text() if <code>handle_post</code> is being used.</p>
+
+</dd>
+<dt id="html_check"><code>html_check</code></dt>
+<dd>
+
+<p>Widget-specific HTML text checkbox/radio button. Must be used in place of LJ::html_check() if <code>handle_post</code> is being used.</p>
+
+</dd>
+<dt id="html_textarea"><code>html_textarea</code></dt>
+<dd>
+
+<p>Widget-specific HTML text area. Must be used in place of LJ::html_textarea() if <code>handle_post</code> is being used.</p>
+
+</dd>
+<dt id="html_color"><code>html_color</code></dt>
+<dd>
+
+<p>Widget-specific HTML color field. Must be used in place of LJ::html_color() if <code>handle_post</code> is being used.</p>
+
+</dd>
+<dt id="html_select"><code>html_select</code></dt>
+<dd>
+
+<p>Widget-specific HTML selection box. Must be used in place of LJ::html_select() if <code>handle_post</code> is being used.</p>
+
+</dd>
+<dt id="html_datetime"><code>html_datetime</code></dt>
+<dd>
+
+<p>Widget-specific HTML datetime field. Must be used in place of LJ::html_datetime() if <code>handle_post</code> is being used.</p>
+
+</dd>
+<dt id="html_hidden"><code>html_hidden</code></dt>
+<dd>
+
+<p>Widget-specific HTML hidden field. Must be used in place of LJ::html_hidden() if <code>handle_post</code> is being used.</p>
+
+</dd>
+<dt id="html_submit"><code>html_submit</code></dt>
+<dd>
+
+<p>Widget-specific HTML submit button. Must be used in place of LJ::html_submit() if <code>handle_post</code> is being used.</p>
+
+</dd>
+<dt id="input_prefix"><code>input_prefix</code></dt>
+<dd>
+
+<p>The prefix that&#39;s added on to form element names to make them widget-specific.</p>
+
+</dd>
+</dl>
+
+<h2 id="Translation-String-Methods">Translation String Methods</h2>
+
+<dl>
+
+<dt id="ml_key"><code>ml_key</code></dt>
+<dd>
+
+<p>The full ML key for a widget string, given the part of the key that&#39;s specific to the string.</p>
+
+</dd>
+<dt id="ml_remove_text"><code>ml_remove_text</code></dt>
+<dd>
+
+<p>Removes a translation string from the widget ML domain.</p>
+
+</dd>
+<dt id="ml_set_text"><code>ml_set_text</code></dt>
+<dd>
+
+<p>Adds a translation string to the widget ML domain.</p>
+
+</dd>
+<dt id="ml_dmid"><code>ml_dmid</code></dt>
+<dd>
+
+<p>Domain ID for the widget ML domain.</p>
+
+</dd>
+<dt id="ml_root_lncode"><code>ml_root_lncode</code></dt>
+<dd>
+
+<p>Root language for the widget ML domain.</p>
+
+</dd>
+<dt id="ml_is_missing_string"><code>ml_is_missing_string</code></dt>
+<dd>
+
+<p>Returns if a widget string is missing or not.</p>
+
+</dd>
+<dt id="ml"><code>ml</code></dt>
+<dd>
+
+<p>Returns the translation string for a given ML key. Can be a general string defined by the page or in en(_LJ).dat, or a string in the widget domain that was defined by a user via a tool.</p>
+
+</dd>
+</dl>
+
+<h1 id="EXAMPLES">EXAMPLES</h1>
+
+<p>See these widgets for some basic examples of different types of widgets:</p>
+
+<pre><code>    cgi-bin/LJ/Widget/ExampleRenderWidget.pm
+    cgi-bin/LJ/Widget/ExamplePostWidget.pm
+    cgi-bin/LJ/Widget/ExampleAjaxWidget.pm</code></pre>
+
+</div><div class="footer">generated by <a href="http://metacpan.org/module/Pod::ProjectDocs">Pod::ProjectDocs</a></div></body></html>
+

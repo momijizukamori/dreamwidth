@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en" xml:lang="en">
+<head>
+<title>DW::BusinessRules::InviteCodes &mdash; Dreamwidth</title>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" /><link rel="stylesheet" href="../../podstyle.css" type="text/css" />
+</head>
+<body><div class="box">
+  <h1 class="t1">Dreamwidth</h1>
+  <table>
+    <tr>
+      <td class="label">Description</td>
+      <td class="cell">manuals and libraries</td>
+    </tr>
+  </table>
+</div>
+<div class="path">
+  <a href="../../index.html">Dreamwidth</a> &gt; Perl Modules &gt;
+  DW::BusinessRules::InviteCodes
+</div>
+<div>
+
+</div>
+
+<div class="pod">
+
+
+<ul id="index">
+  <li><a href="#NAME">NAME</a></li>
+  <li><a href="#SYNOPSIS">SYNOPSIS</a></li>
+  <li><a href="#API">API</a>
+    <ul>
+      <li><a href="#DW::BusinessRules::InviteCodes::user_classes-lang">DW::BusinessRules::InviteCodes::user_classes ( [ $lang ] )</a></li>
+      <li><a href="#DW::BusinessRules::InviteCodes::max_users-ninv">DW::BusinessRules::InviteCodes::max_users( $ninv )</a></li>
+      <li><a href="#DW::BusinessRules::InviteCodes::search_class-uckey-max_nusers">DW::BusinessRules::InviteCodes::search_class( $uckey, $max_nusers )</a></li>
+      <li><a href="#DW::BusinessRules::InviteCodes::adj_invites-ninv-nusers">DW::BusinessRules::InviteCodes::adj_invites( $ninv, $nusers )</a></li>
+    </ul>
+  </li>
+  <li><a href="#BUGS">BUGS</a></li>
+  <li><a href="#AUTHORS">AUTHORS</a></li>
+  <li><a href="#COPYRIGHT-AND-LICENSE">COPYRIGHT AND LICENSE</a></li>
+</ul>
+
+<h1 id="NAME">NAME</h1>
+
+<p>DW::BusinessRules::InviteCodes - business rules for invite code distribution</p>
+
+<h1 id="SYNOPSIS">SYNOPSIS</h1>
+
+<pre><code>  # Generate HTML to select a user class
+  my $classes = DW::BusinessRules::InviteCodes::user_classes;
+  my $html = LJ::html_select( {}, %$classes ); # Assumes unsorted is OK
+
+  my $max_nusers = DW::BusinessRules::InviteCodes::max_users( $ninv );
+  my $uids
+      = DW::BusinessRules::InviteCodes::search_class( $class, $max_nusers );
+  if (scalar( @$uids ) &gt; $max_nusers) {
+      # Sorry, too many users for the invites, even with the fudge factor
+  }
+
+  my $actual
+      = DW::BusinessRules::InviteCodes::adj_invites( $ninv, scalar @$uids );
+  foreach $uid (@$uids) {
+      # Generate and email invite codes for $uid, or something. $actual is the
+      # total number of invites to generate, so each user gets
+      # $actual / scalar (@$uids);
+  }</code></pre>
+
+<h1 id="API">API</h1>
+
+<h2 id="DW::BusinessRules::InviteCodes::user_classes-lang"><code>DW::BusinessRules::InviteCodes::user_classes ( [ $lang ] )</code></h2>
+
+<p>Returns a hashref of <code>{ code =&gt; name }</code> user classes. Names are translated to $lang (defaults to LJ::Lang::get_effective_lang()). There are no restrictions on codes (as long as user_classes and search_class agree on their meaning), and classes can be anything that makes sense in the context of your policies regarding invite codes.</p>
+
+<p>Default implementation has only one class, lucky users, which draws users randomly. (exor674 suggested &quot;users who are on fire&quot;, but all implementations of search_class I could think of have requirements that are probably unsuitable to a production site.)</p>
+
+<h2 id="DW::BusinessRules::InviteCodes::max_users-ninv"><code>DW::BusinessRules::InviteCodes::max_users( $ninv )</code></h2>
+
+<p>Returns a number of users known to be too large to accomodate $ninv invites, even after applying any tolerance factor. This number may not be the exact limit; the only guarantee is that any attempt to distribute $ninv invites (plus any allowed adjustment) to that many users is bound to fail. This number should be passed to search_class to keep it from wasting time by returning more users than can possibly be accommodated.</p>
+
+<p>The default implementation just returns $ninv + 1.</p>
+
+<h2 id="DW::BusinessRules::InviteCodes::search_class-uckey-max_nusers"><code>DW::BusinessRules::InviteCodes::search_class( $uckey, $max_nusers )</code></h2>
+
+<p>Returns an arrayref of up to $max_nusers userids belonging to class $uckey. $uckey must be one of the keys in the hashref returned by user_classes, and the contents of each class is defined by search_class. (user_classes knows class names, but not their contents.)</p>
+
+<p>Important note: this can return $max_nusers userids, even though $max_nusers is defined as &quot;too many&quot; by max_users(). This is so the caller can tell &quot;too many&quot; from &quot;just the number we wanted&quot;.</p>
+
+<p>This function should be called from TheSchwartz only.</p>
+
+<p>The default implementation just returns a bunch of random userids for personal journals (not deleted or suspended) with validated email addresses. Note that it uses a slow role for its database access. This is a good idea, and your site-specific search_class should do the same.</p>
+
+<h2 id="DW::BusinessRules::InviteCodes::adj_invites-ninv-nusers"><code>DW::BusinessRules::InviteCodes::adj_invites( $ninv, $nusers )</code></h2>
+
+<p>Returns an adjusted number of invites &quot;close&quot; to $ninv and that can be evenly divided among $nusers recipients, or 0 if that adjustment is impossible or would be too different from $ninv. Note that the returned value can be larger than $inv if the site-specific business rules allow adjustement upward.</p>
+
+<p>The default implementation returns the largest multiple of $ninv no larger than $nusers.</p>
+
+<h1 id="BUGS">BUGS</h1>
+
+<p>Bound to have some.</p>
+
+<h1 id="AUTHORS">AUTHORS</h1>
+
+<p>Pau Amma &lt;pauamma@dreamwidth.org&gt;</p>
+
+<h1 id="COPYRIGHT-AND-LICENSE">COPYRIGHT AND LICENSE</h1>
+
+<p>Copyright (c) 2009 by Dreamwidth Studios, LLC.</p>
+
+<p>This program is free software; you may redistribute it and/or modify it under the same terms as Perl itself. For a copy of the license, please reference &#39;perldoc perlartistic&#39; or &#39;perldoc perlgpl&#39;.</p>
+
+</div><div class="footer">generated by <a href="http://metacpan.org/module/Pod::ProjectDocs">Pod::ProjectDocs</a></div></body></html>
+

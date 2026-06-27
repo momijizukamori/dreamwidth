@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="en" xml:lang="en">
+<head>
+<title>DW::InviteCodes &mdash; Dreamwidth</title>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" /><link rel="stylesheet" href="../podstyle.css" type="text/css" />
+</head>
+<body><div class="box">
+  <h1 class="t1">Dreamwidth</h1>
+  <table>
+    <tr>
+      <td class="label">Description</td>
+      <td class="cell">manuals and libraries</td>
+    </tr>
+  </table>
+</div>
+<div class="path">
+  <a href="../index.html">Dreamwidth</a> &gt; Perl Modules &gt;
+  DW::InviteCodes
+</div>
+<div>
+
+</div>
+
+<div class="pod">
+
+
+<ul id="index">
+  <li><a href="#NAME">NAME</a></li>
+  <li><a href="#SYNOPSIS">SYNOPSIS</a></li>
+  <li><a href="#API">API</a>
+    <ul>
+      <li><a href="#class-generate-count-howmany-owner-forwho-reason-why">$class-&gt;generate( [ count =&gt; $howmany, ] owner =&gt; $forwho, reason =&gt; $why</a></li>
+      <li><a href="#class-could_be_code-string-string">$class-&gt;could_be_code( string =&gt; $string )</a></li>
+      <li><a href="#class-check_code-code-invite-userid-recipient">$class-&gt;check_code( code =&gt; $invite [, userid =&gt; $recipient] )</a></li>
+      <li><a href="#class-check_rate">$class-&gt;check_rate</a></li>
+      <li><a href="#class-paid_status-code-code">$class-&gt;paid_status( code =&gt; $code )</a></li>
+      <li><a href="#object-use_code-user-recipient">$object-&gt;use_code( user =&gt; $recipient )</a></li>
+      <li><a href="#object-send_code-email-email">$object-&gt;send_code ( [ email =&gt; $email ] )</a></li>
+      <li><a href="#class-new-code-invite">$class-&gt;new( code =&gt; $invite )</a></li>
+      <li><a href="#class-by_owner-userid-userid">$class-&gt;by_owner( userid =&gt; $userid )</a></li>
+      <li><a href="#class-by_owner_unused-userid-userid">$class-&gt;by_owner_unused( userid =&gt; $userid )</a></li>
+      <li><a href="#class-by_recipient-userid-userid">$class-&gt;by_recipient( userid =&gt; $userid )</a></li>
+      <li><a href="#class-unused_count-user-userid">$class-&gt;unused_count( user =&gt; $userid )</a></li>
+      <li><a href="#class-load_by-field-userid">$class-&gt;load_by( $field, $userid )</a></li>
+      <li><a href="#object-code">$object-&gt;code</a></li>
+      <li><a href="#object-owner">$object-&gt;owner</a></li>
+      <li><a href="#object-recipient">$object-&gt;recipient</a></li>
+      <li><a href="#object-reason">$object-&gt;reason</a></li>
+      <li><a href="#object-timegenerate">$object-&gt;timegenerate</a></li>
+      <li><a href="#object-timesent">$object-&gt;timesent</a></li>
+      <li><a href="#object-email">$object-&gt;email</a></li>
+      <li><a href="#object-is_used">$object-&gt;is_used</a></li>
+      <li><a href="#class-encode-acid-auth">$class-&gt;encode( $acid, $auth )</a></li>
+      <li><a href="#class-decode-invite">$class-&gt;decode( $invite )</a></li>
+      <li><a href="#class-acid_encode-num">$class-&gt;acid_encode( $num )</a></li>
+      <li><a href="#class-acid_decode-acid">$class-&gt;acid_decode( $acid )</a></li>
+    </ul>
+  </li>
+  <li><a href="#BUGS">BUGS</a></li>
+  <li><a href="#AUTHORS">AUTHORS</a></li>
+  <li><a href="#COPYRIGHT-AND-LICENSE">COPYRIGHT AND LICENSE</a></li>
+</ul>
+
+<h1 id="NAME">NAME</h1>
+
+<p>DW::InviteCodes - Invite code management backend for Dreamwidth</p>
+
+<h1 id="SYNOPSIS">SYNOPSIS</h1>
+
+<pre><code>  use DW::InviteCodes;
+
+  # Reward the module authors
+  my @ic = DW::InviteCodes-&gt;generate( owner =&gt; LJ::load_user(&quot;system&quot;),
+                                      count =&gt; 2,
+                                      reason =&gt; &quot;For DW::InviteCodes authors&quot; );
+
+  # Check whether a code is valid
+  my $valid = DW::InviteCodes-&gt;check_code( code =&gt; $code [, userid =&gt; $recipient] );
+
+  # Retrieve DW::InviteCodes object(s) by code, owner (all or just unused), or recipient
+  # (note: these return objects, not strings)
+  my $object = DW::InviteCodes-&gt;new( code =&gt; $invite );
+  my @owned = DW::InviteCodes-&gt;by_owner( userid =&gt; $userid );
+  my @unused = DW::InviteCodes-&gt;by_owner_unused( userid =&gt; $userid);
+  my @used = DW::InviteCodes-&gt;by_recipient( userid =&gt; $userid );
+
+  # Retrieve a count of all invite codes
+  my $count = DW::InviteCodes-&gt;unused_count( userid =&gt; $userid );
+
+  # Access object data
+  my $invite = $object-&gt;code;
+  my $owner = $object-&gt;owner; # userid, not LJ::User object
+  my $recipient = $object-&gt;recipient; # userid or 0
+  my $reason = $object-&gt;reason;
+  my $email = $object-&gt;email;
+  my $timegenerate = $object-&gt;timegenerate; # unix timestamp
+  my $timesent = $object-&gt;timesent; #unix timestamp
+  my $is_used = $object-&gt;is_used; # true if used to create an account
+
+  # Mark the invite code as sent
+  $code-&gt;send_code( email =&gt; $email );
+
+  # Mark the invite code as used
+  $code-&gt;use_code( user =&gt; LJ::load_user(&#39;new&#39;) );</code></pre>
+
+<h1 id="API">API</h1>
+
+<h2 id="class-generate-count-howmany-owner-forwho-reason-why"><code>$class-&gt;generate( [ count =&gt; $howmany, ] owner =&gt; $forwho, reason =&gt; $why</code></h2>
+
+<p>Generates $howmany invite codes (default 1) and sets their reason to $why and owner to $forwho.</p>
+
+<p>If owner is undef, the codes will be &#39;system codes&#39; and have no source.</p>
+
+<h2 id="class-could_be_code-string-string"><code>$class-&gt;could_be_code( string =&gt; $string )</code></h2>
+
+<p>Checks whether $string could possibly be a code. It makes sure that it only contains DIGITS and is CODE_LEN long.</p>
+
+<h2 id="class-check_code-code-invite-userid-recipient"><code>$class-&gt;check_code( code =&gt; $invite [, userid =&gt; $recipient] )</code></h2>
+
+<p>Checks whether code $invite is valid before trying to create an account. Takes an optional $recipient userid, to protect the code from accidentally being used if the form is double-submitted.</p>
+
+<h2 id="class-check_rate"><code>$class-&gt;check_rate</code></h2>
+
+<p>Rate limit code input; only allow one code every five seconds.</p>
+
+<p>Return 1 if rate is okay, return 0 if too fast.</p>
+
+<h2 id="class-paid_status-code-code"><code>$class-&gt;paid_status( code =&gt; $code )</code></h2>
+
+<p>Checks whether this code comes loaded with a paid account. Returns a DW::Shop::Item::Account if yes; undef if not</p>
+
+<h2 id="object-use_code-user-recipient"><code>$object-&gt;use_code( user =&gt; $recipient )</code></h2>
+
+<p>Marks an invite code as having been used to create the $recipient account.</p>
+
+<h2 id="object-send_code-email-email"><code>$object-&gt;send_code ( [ email =&gt; $email ] )</code></h2>
+
+<p>Marks an invite code as having been sent. The code may or may not have been used to create a new account. Make sure if passing email to validate first!</p>
+
+<h2 id="class-new-code-invite"><code>$class-&gt;new( code =&gt; $invite )</code></h2>
+
+<p>Returns object for invite, or undef if none exists.</p>
+
+<h2 id="class-by_owner-userid-userid"><code>$class-&gt;by_owner( userid =&gt; $userid )</code></h2>
+
+<p>Returns (as objects) the list of all invite codes generated by (or on behalf of) $userid.</p>
+
+<h2 id="class-by_owner_unused-userid-userid"><code>$class-&gt;by_owner_unused( userid =&gt; $userid )</code></h2>
+
+<p>Returns (as objects) the list of all unused invite codes generated by (or on behalf of) $userid.</p>
+
+<h2 id="class-by_recipient-userid-userid"><code>$class-&gt;by_recipient( userid =&gt; $userid )</code></h2>
+
+<p>Returns (as objects) the list of all invite codes used by $userid. (This will normally be a singleton, but the table declaration doesn&#39;t make that key unique, so going for safety.)</p>
+
+<h2 id="class-unused_count-user-userid"><code>$class-&gt;unused_count( user =&gt; $userid )</code></h2>
+
+<p>Returns a count of unused invite codes owned by $userid.</p>
+
+<h2 id="class-load_by-field-userid"><code>$class-&gt;load_by( $field, $userid )</code></h2>
+
+<p>Internal. Loads all invite codes with $field (that should be one of the userid fields) set to $userid. Note: this has protection against most SQL injection attempts, but is not guaranteed to be 100% safe. Caller should take care not to pass externally generated values in $field.</p>
+
+<h2 id="object-code"><code>$object-&gt;code</code></h2>
+
+<p>Returns the object&#39;s invite code.</p>
+
+<h2 id="object-owner"><code>$object-&gt;owner</code></h2>
+
+<p>Returns the object&#39;s owner (userid, not LJ::User object).</p>
+
+<h2 id="object-recipient"><code>$object-&gt;recipient</code></h2>
+
+<p>Returns the object&#39;s recipient (userid or 0).</p>
+
+<h2 id="object-reason"><code>$object-&gt;reason</code></h2>
+
+<p>Returns the object&#39;s reason for creation.</p>
+
+<h2 id="object-timegenerate"><code>$object-&gt;timegenerate</code></h2>
+
+<p>Returns the object&#39;s generated date and time as a unix timestamp.</p>
+
+<h2 id="object-timesent"><code>$object-&gt;timesent</code></h2>
+
+<p>Returns the date and time the invite code was sent through the interface, as a unix timestamp. The code may or may not have been used since.</p>
+
+<h2 id="object-email"><code>$object-&gt;email</code></h2>
+
+<p>Returns the email address the invite code was sent to through the interface. The code may or may not have been used since.</p>
+
+<h2 id="object-is_used"><code>$object-&gt;is_used</code></h2>
+
+<p>Returns true if the object was used to create an account, false otherwise.</p>
+
+<h2 id="class-encode-acid-auth"><code>$class-&gt;encode( $acid, $auth )</code></h2>
+
+<p>Internal. Given an invite code id and a 13-digit auth code, returns a 20-digit all-uppercase invite code.</p>
+
+<h2 id="class-decode-invite"><code>$class-&gt;decode( $invite )</code></h2>
+
+<p>Internal. Given an invite code, break it down into its component parts: an invite code id and a 13-character auth code.</p>
+
+<h2 id="class-acid_encode-num"><code>$class-&gt;acid_encode( $num )</code></h2>
+
+<p>Internal. Converts a 32-bit unsigned integer into a fixed-width string representation in base DIGITS_LEN, based on an alphabet of letters and numbers that are not easily mistaken for each other.</p>
+
+<h2 id="class-acid_decode-acid"><code>$class-&gt;acid_decode( $acid )</code></h2>
+
+<p>Internal. Given an acid encoding from <code>DW::InviteCodes::acid_encode</code>, returns the original decimal number.</p>
+
+<h1 id="BUGS">BUGS</h1>
+
+<p>Bound to be some.</p>
+
+<h1 id="AUTHORS">AUTHORS</h1>
+
+<p>Afuna &lt;coder.dw@afunamatata.com&gt;</p>
+
+<p>Pau Amma &lt;pauamma@dreamwidth.org&gt;</p>
+
+<h1 id="COPYRIGHT-AND-LICENSE">COPYRIGHT AND LICENSE</h1>
+
+<p>Copyright (c) 2009 by Dreamwidth Studios, LLC.</p>
+
+<p>This program is free software; you may redistribute it and/or modify it under the same terms as Perl itself. For a copy of the license, please reference &#39;perldoc perlartistic&#39; or &#39;perldoc perlgpl&#39;.</p>
+
+</div><div class="footer">generated by <a href="http://metacpan.org/module/Pod::ProjectDocs">Pod::ProjectDocs</a></div></body></html>
+

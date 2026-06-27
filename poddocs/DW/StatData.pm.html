@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en" xml:lang="en">
+<head>
+<title>DW::StatData &mdash; Dreamwidth</title>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" /><link rel="stylesheet" href="../podstyle.css" type="text/css" />
+</head>
+<body><div class="box">
+  <h1 class="t1">Dreamwidth</h1>
+  <table>
+    <tr>
+      <td class="label">Description</td>
+      <td class="cell">manuals and libraries</td>
+    </tr>
+  </table>
+</div>
+<div class="path">
+  <a href="../index.html">Dreamwidth</a> &gt; Perl Modules &gt;
+  DW::StatData
+</div>
+<div>
+
+</div>
+
+<div class="pod">
+
+
+<ul id="index">
+  <li><a href="#NAME">NAME</a></li>
+  <li><a href="#SYNOPSIS">SYNOPSIS</a></li>
+  <li><a href="#API">API</a>
+    <ul>
+      <li><a href="#self-category">$self-&gt;category</a></li>
+      <li><a href="#self-name">$self-&gt;name</a></li>
+      <li><a href="#self-keylist">$self-&gt;keylist</a></li>
+      <li><a href="#self-value-key">$self-&gt;value( $key )</a></li>
+      <li><a href="#self-data">$self-&gt;data</a></li>
+      <li><a href="#class-collect-keys">$class-&gt;collect( @keys )</a></li>
+      <li><a href="#class-new-key1-value">$class-&gt;new( $key1 =&gt; $value, ... )</a></li>
+      <li><a href="#class-load-timestampA-key1-value1-...-timestampB">$class-&gt;load( { $timestampA =&gt; { $key1 =&gt; $value1, ... }, $timestampB =&gt; ... } )</a></li>
+      <li><a href="#class-load_latest">$class-&gt;load_latest( ... )</a></li>
+    </ul>
+  </li>
+  <li><a href="#BUGS">BUGS</a></li>
+  <li><a href="#AUTHORS">AUTHORS</a></li>
+  <li><a href="#COPYRIGHT-AND-LICENSE">COPYRIGHT AND LICENSE</a></li>
+</ul>
+
+<h1 id="NAME">NAME</h1>
+
+<p>DW::StatData - Abstract superclass for statistics modules</p>
+
+<h1 id="SYNOPSIS">SYNOPSIS</h1>
+
+<pre><code>    use DW::StatStore;  # to retrieve stored statistics from the database
+    use DW::StatData;   # to serve as an API for gathering the data
+    # load all the available DW::StatData::* submodules
+    LJ::ModuleLoader::require_subclasses( &#39;DW::StatData&#39; );
+
+    # get the latest set of pony statistics
+    my $ponies = DW::StatData::Ponies-&gt;load_latest( DW::StatStore-&gt;get( &quot;ponies&quot; ) );
+
+    # how many ponies are currently sparkly?
+    $ret .= $ponies-&gt;value( &quot;sparkly&quot; );
+
+    # load statistics for ponies over the past 30 days
+    my $ponies_history = DW::StatData::Ponies-&gt;load( DW::StatStore-&gt;get( &quot;ponies&quot;, 30 ) );
+    
+    # get the number of sparkly ponies 15 days ago
+    $ret .= $ponies_history-&gt;{15}-&gt;value( &quot;sparkly&quot; );</code></pre>
+
+<h1 id="API">API</h1>
+
+<h2 id="self-category"><code>$self-&gt;category</code></h2>
+
+<p>Returns the category of statistics handled by this module. Subclasses should override this.</p>
+
+<h2 id="self-name"><code>$self-&gt;name</code></h2>
+
+<p>Returns the pretty name of this category. Subclasses should override this.</p>
+
+<h2 id="self-keylist"><code>$self-&gt;keylist</code></h2>
+
+<p>Returns an array of available keys within this category. Subclasses should override this.</p>
+
+<h2 id="self-value-key"><code>$self-&gt;value( $key )</code></h2>
+
+<p>Given a key, returns a value.</p>
+
+<h2 id="self-data"><code>$self-&gt;data</code></h2>
+
+<p>Returns a hashref of the statistics data under this category.</p>
+
+<h2 id="class-collect-keys"><code>$class-&gt;collect( @keys )</code></h2>
+
+<p>Collects data from a specific table or set of tables for statistics under this category. @keys is the list of keys to collect statistics for. Returns a { key =&gt; value } hashref, like the -&gt;data object method. Subclasses must implement this.</p>
+
+<h2 id="class-new-key1-value"><code>$class-&gt;new( $key1 =&gt; $value, ... )</code></h2>
+
+<p>Initialize this row of stat data, given a hash of statkey-value pairs</p>
+
+<h2 id="class-load-timestampA-key1-value1-...-timestampB"><code>$class-&gt;load( { $timestampA =&gt; { $key1 =&gt; $value1, ... }, $timestampB =&gt; ... } )</code></h2>
+
+<p>Given a hashref of timestamps mapped to data rows, returns a hashref of DW::StatData::* objects. Input timestamps are time that row of statistics was collected; returned hash keys are how many days ago this data was collected.</p>
+
+<h2 id="class-load_latest"><code>$class-&gt;load_latest( ... )</code></h2>
+
+<p>Accepts the same arguments as $class-&gt;load, but returns only the latest row</p>
+
+<h1 id="BUGS">BUGS</h1>
+
+<p>Multiple versions of the data collected on the same day will be collapsed into one day.</p>
+
+<h1 id="AUTHORS">AUTHORS</h1>
+
+<p>Afuna &lt;coder.dw@afunamatata.com&gt;</p>
+
+<h1 id="COPYRIGHT-AND-LICENSE">COPYRIGHT AND LICENSE</h1>
+
+<p>Copyright (c) 2009 by Dreamwidth Studios, LLC.</p>
+
+<p>This program is free software; you may redistribute it and/or modify it under the same terms as Perl itself. For a copy of the license, please reference &#39;perldoc perlartistic&#39; or &#39;perldoc perlgpl&#39;.</p>
+
+</div><div class="footer">generated by <a href="http://metacpan.org/module/Pod::ProjectDocs">Pod::ProjectDocs</a></div></body></html>
+

@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en" xml:lang="en">
+<head>
+<title>DW::Worker::ContentImporter &mdash; Dreamwidth</title>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" /><link rel="stylesheet" href="../../podstyle.css" type="text/css" />
+</head>
+<body><div class="box">
+  <h1 class="t1">Dreamwidth</h1>
+  <table>
+    <tr>
+      <td class="label">Description</td>
+      <td class="cell">manuals and libraries</td>
+    </tr>
+  </table>
+</div>
+<div class="path">
+  <a href="../../index.html">Dreamwidth</a> &gt; Perl Modules &gt;
+  DW::Worker::ContentImporter
+</div>
+<div>
+
+</div>
+
+<div class="pod">
+
+
+<ul id="index">
+  <li><a href="#NAME">NAME</a></li>
+  <li><a href="#Saving-API">Saving API</a>
+    <ul>
+      <li><a href="#class-merge_trust-user-hashref-friends">$class-&gt;merge_trust( $user, $hashref, $friends )</a></li>
+      <li><a href="#class-merge_watch-user-hashref-friends">$class-&gt;merge_watch( $user, $hashref, $friends )</a></li>
+    </ul>
+  </li>
+  <li><a href="#Helper-Functions">Helper Functions</a>
+    <ul>
+      <li><a href="#class-import_data-userid-import_data_id">$class-&gt;import_data( $userid, $import_data_id )</a></li>
+      <li><a href="#class-userids_to_message-userid">$class-&gt;userids_to_message( $userid )</a></li>
+      <li><a href="#class-_should_exit-message">$class-&gt;_should_exit( $message )</a></li>
+      <li><a href="#class-fail-import_data-item-job-text-arguments">$class-&gt;fail( $import_data, $item, $job, &quot;text&quot;, [arguments, ...] )</a></li>
+      <li><a href="#class-temp_fail-job-text-arguments">$class-&gt;temp_fail( $job, &quot;text&quot;, [arguments, ...] )</a></li>
+      <li><a href="#class-ok-import_data-item-job-show">$class-&gt;ok( $import_data, $item, $job, $show )</a></li>
+      <li><a href="#class-decline-job-opts">$class-&gt;decline( $job, %opts )</a></li>
+      <li><a href="#class-enabled-data">$class-&gt;enabled( $data )</a></li>
+      <li><a href="#class-status-import_data-item-args">$class-&gt;status( $import_data, $item, $args )</a></li>
+    </ul>
+  </li>
+</ul>
+
+<h1 id="NAME">NAME</h1>
+
+<p>DW::Worker::ContentImporter - Generic helper functions for Content Importers</p>
+
+<h1 id="Saving-API">Saving API</h1>
+
+<p>All Saving API functions take as the first two options the target user option, followed by a consistent hashref passed to every function.</p>
+
+<h2 id="class-merge_trust-user-hashref-friends"><code>$class-&gt;merge_trust( $user, $hashref, $friends )</code></h2>
+
+<p>$friends is a reference to an array of hashrefs, with each hashref with the following format:</p>
+
+<pre><code>  {
+      userid =&gt; ...,        # local userid of the friend
+      groupmask =&gt; 1,       # groupmask
+  }</code></pre>
+
+<h2 id="class-merge_watch-user-hashref-friends"><code>$class-&gt;merge_watch( $user, $hashref, $friends )</code></h2>
+
+<p>$friends is a reference to an array of hashrefs, with each hashref with the following format:</p>
+
+<pre><code>  {
+      userid =&gt; ...,        # local userid of the friend
+      fgcolor =&gt; &#39;#ff0000&#39;, # foreground color
+      bgcolor =&gt; &#39;#00ff00&#39;, # background color
+  }</code></pre>
+
+<h1 id="Helper-Functions">Helper Functions</h1>
+
+<h2 id="class-import_data-userid-import_data_id"><code>$class-&gt;import_data( $userid, $import_data_id )</code></h2>
+
+<p>Returns a hash of the data we&#39;re using as source.</p>
+
+<h2 id="class-userids_to_message-userid"><code>$class-&gt;userids_to_message( $userid )</code></h2>
+
+<p>For communities, this returns the userids for all of the admins so we let them know what has happened with their import.</p>
+
+<h2 id="class-_should_exit-message"><code>$class-&gt;_should_exit( $message )</code></h2>
+
+<p>Determine whether or not this failure message should be considered to be more than just a job failure. I.e., whether we should exit the worker to try to get a new IP.</p>
+
+<h2 id="class-fail-import_data-item-job-text-arguments"><code>$class-&gt;fail( $import_data, $item, $job, &quot;text&quot;, [arguments, ...] )</code></h2>
+
+<p>Permanently fail this import job.</p>
+
+<h2 id="class-temp_fail-job-text-arguments"><code>$class-&gt;temp_fail( $job, &quot;text&quot;, [arguments, ...] )</code></h2>
+
+<p>Temporarily fail this import job, it will get retried if it hasn&#39;t failed too many times.</p>
+
+<h2 id="class-ok-import_data-item-job-show"><code>$class-&gt;ok( $import_data, $item, $job, $show )</code></h2>
+
+<p>Successfully end this import job.</p>
+
+<h2 id="class-decline-job-opts"><code>$class-&gt;decline( $job, %opts )</code></h2>
+
+<p>Decline to process the job for now. Will retry again later. (Does not count against the maximum number of retries)</p>
+
+<h2 id="class-enabled-data"><code>$class-&gt;enabled( $data )</code></h2>
+
+<p>Check whether this import source is enabled.</p>
+
+<h2 id="class-status-import_data-item-args"><code>$class-&gt;status( $import_data, $item, $args )</code></h2>
+
+<p>This creates an LJ::Event::ImportStatus item for the user to look at. Note that $args is a hashref that is passed straight through in the item.</p>
+
+</div><div class="footer">generated by <a href="http://metacpan.org/module/Pod::ProjectDocs">Pod::ProjectDocs</a></div></body></html>
+

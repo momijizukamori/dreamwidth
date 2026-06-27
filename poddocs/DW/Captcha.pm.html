@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en" xml:lang="en">
+<head>
+<title>DW::Captcha &mdash; Dreamwidth</title>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" /><link rel="stylesheet" href="../podstyle.css" type="text/css" />
+</head>
+<body><div class="box">
+  <h1 class="t1">Dreamwidth</h1>
+  <table>
+    <tr>
+      <td class="label">Description</td>
+      <td class="cell">manuals and libraries</td>
+    </tr>
+  </table>
+</div>
+<div class="path">
+  <a href="../index.html">Dreamwidth</a> &gt; Perl Modules &gt;
+  DW::Captcha
+</div>
+<div>
+
+</div>
+
+<div class="pod">
+
+
+<ul id="index">
+  <li><a href="#NAME">NAME</a></li>
+  <li><a href="#SYNOPSIS">SYNOPSIS</a></li>
+  <li><a href="#API">API</a>
+    <ul>
+      <li><a href="#DW::Captcha-new-page-opts">DW::Captcha-&gt;new( $page, %opts )</a></li>
+      <li><a href="#class-name">$class-&gt;name</a></li>
+      <li><a href="#captcha-form_fields">$captcha-&gt;form_fields</a></li>
+      <li><a href="#captcha-site_enabled">$captcha-&gt;site_enabled</a></li>
+      <li><a href="#captcha-print">$captcha-&gt;print</a></li>
+      <li><a href="#captcha-validate-opts">$captcha-&gt;validate( %opts )</a></li>
+      <li><a href="#captcha-enabled-page">$captcha-&gt;enabled( $page )</a></li>
+      <li><a href="#captcha-page">$captcha-&gt;page</a></li>
+      <li><a href="#captcha-challenge">$captcha-&gt;challenge</a></li>
+      <li><a href="#captcha-response">$captcha-&gt;response</a></li>
+      <li><a href="#captcha-has_response">$captcha-&gt;has_response</a></li>
+    </ul>
+  </li>
+</ul>
+
+<h1 id="NAME">NAME</h1>
+
+<p>DW::Captcha - This module handles CAPTCHA throughout the site</p>
+
+<h1 id="SYNOPSIS">SYNOPSIS</h1>
+
+<p>Here&#39;s the simplest method:</p>
+
+<pre><code>    # print out the captcha form fields on a particular page
+    my $captcha = DW::Captcha-&gt;new( $page );
+    if ( $captcha-&gt;enabled ) {
+        $captcha-&gt;print;
+    }
+
+    # elsewhere, process the post
+    if ( $r-&gt;did_post ) {
+        my $captcha = DW::Captcha-&gt;new( $page, %{$r-&gt;post_args} );
+
+        my $captcha_error;
+        push @errors, $captcha_error unless $captcha-&gt;validate( err_ref =&gt; \$captcha_error );
+    }</code></pre>
+
+<p>When using in conjunction with LJ::Widget subclasses, you can just specify the form field names and let the widget handle it:</p>
+
+<pre><code>    LJ::Widget-&gt;use_specific_form_fields( post =&gt; \%POST, widget =&gt; &quot;...&quot;, fields =&gt; [ DW::Captcha-&gt;form_fields ] )
+        if DW::Captcha-&gt;enabled( &#39;create&#39; );</code></pre>
+
+<p>In a controller+template pair, do this to generate the captcha HTML:</p>
+
+<pre><code>    $vars-&gt;{print_captcha} = sub { return DW::Captcha-&gt;new( $_[0] )-&gt;print; }
+    # ... other vars go here ...
+    return DW::Template-&gt;render_template( &#39;path/to/template.tt&#39;, $vars );</code></pre>
+
+<p>then, in template path/to/template.tt:</p>
+
+<pre><code>    [% print_captcha( &#39;page name&#39; ) %]</code></pre>
+
+<p>or</p>
+
+<pre><code>    [% print_captcha() %]</code></pre>
+
+<h1 id="API">API</h1>
+
+<h2 id="DW::Captcha-new-page-opts"><code>DW::Captcha-&gt;new( $page, %opts )</code></h2>
+
+<p>Arguments:</p>
+
+<dl>
+
+<dt id="page---the-page-were-going-to-display-this-CAPTCHA-on">page - the page we&#39;re going to display this CAPTCHA on</dt>
+<dd>
+
+</dd>
+<dt id="a-hash-of-additional-options-including-the-request-response-from-a-form-post">a hash of additional options, including the request/response from a form post</dt>
+<dd>
+
+</dd>
+</dl>
+
+<h2 id="class-name"><code>$class-&gt;name</code></h2>
+
+<p>The name used to refer to this CAPTCHA implementation.</p>
+
+<h2 id="captcha-form_fields"><code>$captcha-&gt;form_fields</code></h2>
+
+<p>Returns a list of the form fields expected by the CAPTCHA implementation.</p>
+
+<h2 id="captcha-site_enabled"><code>$captcha-&gt;site_enabled</code></h2>
+
+<p>Whether CAPTCHA is enabled site-wide. (Specific pages may have CAPTCHA disabled)</p>
+
+<h2 id="captcha-print"><code>$captcha-&gt;print</code></h2>
+
+<p>Print the CAPTCHA form fields.</p>
+
+<h2 id="captcha-validate-opts"><code>$captcha-&gt;validate( %opts )</code></h2>
+
+<p>Return whether the response for this CAPTCHA was valid.</p>
+
+<p>Arguments:</p>
+
+<dl>
+
+<dt id="opts---a-hash-of-additional-options-including-the-request-response-from-a-form-post-and-an-error-reference-err_ref-which-may-contain-additional-information-in-case-the-validation-failed">opts - a hash of additional options, including the request/response from a form post and an error reference (err_ref) which may contain additional information in case the validation failed</dt>
+<dd>
+
+</dd>
+</dl>
+
+<h2 id="captcha-enabled-page"><code>$captcha-&gt;enabled( $page )</code></h2>
+
+<p>Whether this CAPTCHA implementation is enabled on this particular page (or sitewide if this captcha instance isn&#39;t tied to a specific page)</p>
+
+<p>Arguments:</p>
+
+<dl>
+
+<dt id="page---Optional.-A-specific-page-to-check">page - Optional. A specific page to check</dt>
+<dd>
+
+</dd>
+</dl>
+
+<h2 id="captcha-page"><code>$captcha-&gt;page</code></h2>
+
+<p>Return the page that this CAPTCHA instance is going to be used with</p>
+
+<h2 id="captcha-challenge"><code>$captcha-&gt;challenge</code></h2>
+
+<p>Challenge text, provided by the CAPTCHA implementation</p>
+
+<h2 id="captcha-response"><code>$captcha-&gt;response</code></h2>
+
+<p>User-provided response text</p>
+
+<h2 id="captcha-has_response"><code>$captcha-&gt;has_response</code></h2>
+
+<p>Tests for existence of user-provided response text, returns true/false</p>
+
+</div><div class="footer">generated by <a href="http://metacpan.org/module/Pod::ProjectDocs">Pod::ProjectDocs</a></div></body></html>
+

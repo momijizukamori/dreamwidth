@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="en" xml:lang="en">
+<head>
+<title>DW::Shop::Item &mdash; Dreamwidth</title>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" /><link rel="stylesheet" href="../../podstyle.css" type="text/css" />
+</head>
+<body><div class="box">
+  <h1 class="t1">Dreamwidth</h1>
+  <table>
+    <tr>
+      <td class="label">Description</td>
+      <td class="cell">manuals and libraries</td>
+    </tr>
+  </table>
+</div>
+<div class="path">
+  <a href="../../index.html">Dreamwidth</a> &gt; Perl Modules &gt;
+  DW::Shop::Item
+</div>
+<div>
+
+</div>
+
+<div class="pod">
+
+
+<ul id="index">
+  <li><a href="#NAME">NAME</a></li>
+  <li><a href="#SYNOPSIS">SYNOPSIS</a></li>
+  <li><a href="#API">API</a>
+    <ul>
+      <li><a href="#class-new-opts">$class-&gt;new( [ $opts ] )</a></li>
+      <li><a href="#self-apply_automatically">$self-&gt;apply_automatically</a></li>
+      <li><a href="#self-apply">$self-&gt;apply</a></li>
+      <li><a href="#self-_apply">$self-&gt;_apply</a></li>
+      <li><a href="#self-unapply">$self-&gt;unapply</a></li>
+      <li><a href="#self-cart_state_changed-cart-newstate">$self-&gt;cart_state_changed( $cart, $newstate )</a></li>
+      <li><a href="#self-can_be_added-opts">$self-&gt;can_be_added( [ %opts ] )</a></li>
+      <li><a href="#self-can_have_reason-opts">$self-&gt;can_have_reason( [ %opts ] )</a></li>
+      <li><a href="#self-conflicts-item">$self-&gt;conflicts( $item )</a></li>
+      <li><a href="#self-t_html-opts">$self-&gt;t_html( [ %opts ] )</a></li>
+      <li><a href="#self-name_text">$self-&gt;name_text</a></li>
+      <li><a href="#self-name_html">$self-&gt;name_html</a></li>
+      <li><a href="#self-note">$self-&gt;note</a></li>
+      <li><a href="#self-short_desc">$self-&gt;short_desc</a></li>
+      <li><a href="#self-id-id">$self-&gt;id( $id )</a></li>
+      <li><a href="#self-cartid-cartid">$self-&gt;cartid( $cartid )</a></li>
+      <li><a href="#self-t_userid-target_userid">$self-&gt;t_userid( $target_userid )</a></li>
+      <li><a href="#self-from_html">$self-&gt;from_html</a></li>
+      <li><a href="#self-from_text">$self-&gt;from_text</a></li>
+      <li><a href="#self-paid_cash">$self-&gt;paid_cash</a></li>
+      <li><a href="#self-paid_points">$self-&gt;paid_points</a></li>
+      <li><a href="#self-display_paid">$self-&gt;display_paid</a></li>
+      <li><a href="#self-display_paid_cash">$self-&gt;display_paid_cash</a></li>
+      <li><a href="#self-display_paid_points">$self-&gt;display_paid_points</a></li>
+      <li><a href="#self-applied">$self-&gt;applied</a></li>
+      <li><a href="#self-cost_cash">$self-&gt;cost_cash</a></li>
+      <li><a href="#self-cost_points">$self-&gt;cost_points</a></li>
+      <li><a href="#self-t_email">$self-&gt;t_email</a></li>
+      <li><a href="#self-from_userid">$self-&gt;from_userid</a></li>
+      <li><a href="#self-deliverydate">$self-&gt;deliverydate</a></li>
+      <li><a href="#self-anonymous">$self-&gt;anonymous</a></li>
+      <li><a href="#self-noremove">$self-&gt;noremove</a></li>
+      <li><a href="#self-from_name">$self-&gt;from_name</a></li>
+      <li><a href="#self-reason">$self-&gt;reason</a></li>
+      <li><a href="#self-cannot_conflict">$self-&gt;cannot_conflict</a></li>
+    </ul>
+  </li>
+</ul>
+
+<h1 id="NAME">NAME</h1>
+
+<p>DW::Shop::Item - base class containing basic behavior for items to be sold in the shop</p>
+
+<h1 id="SYNOPSIS">SYNOPSIS</h1>
+
+<h1 id="API">API</h1>
+
+<h2 id="class-new-opts"><code>$class-&gt;new( [ $opts ] )</code></h2>
+
+<p>Instantiates an item to be purchased in the shop. The item must be defined in the %LJ::SHOP hash in your config file.</p>
+
+<p>Arguments: =item type =&gt; item type, passed in by a subclass. Must be configured in %LJ::SHOP =item target_userid =&gt; userid, =item target_email =&gt; email, =item from_userid =&gt; userid, =item deliverydate =&gt; &quot;yyyy-mm-dd&quot;, =item anonymous =&gt; 1, =item anonymous_target =&gt; 1, =item cannot_conflict =&gt; 1, =item noremove =&gt; 1, =item from_name =&gt; sender name, =item reason =&gt; personal note from sender to target</p>
+
+<p>The type is required. Also, one target_* argument is required; it may be either a target_userid or a target_email. All other arguments are optional.</p>
+
+<p>Subclasses must override this function to set the type. Subclasses may also do any other modifications necessary when instantiating itself. See DW::Shop::Item::Account for an example.</p>
+
+<h2 id="self-apply_automatically"><code>$self-&gt;apply_automatically</code></h2>
+
+<p>True if you want the item to be applied via the paidstatus worker, and false if you wish to apply the item yourself (usually triggered by a user action).</p>
+
+<p>Subclasses may override.</p>
+
+<h2 id="self-apply"><code>$self-&gt;apply</code></h2>
+
+<p>Called when we are told we need to apply this item, i.e., turn it on. Note that we update ourselves, but it&#39;s up to the cart to make sure that it saves.</p>
+
+<p>Subclasses may override this method, but a better approach would be to override the internal $self-&gt;_apply method.</p>
+
+<h2 id="self-_apply"><code>$self-&gt;_apply</code></h2>
+
+<p>Internal application sub.</p>
+
+<p>Subclasses must override this for item-specific behavior.</p>
+
+<h2 id="self-unapply"><code>$self-&gt;unapply</code></h2>
+
+<p>Called when we need to turn this item off.</p>
+
+<p>Subclasses may override this to add additional behavior or warnings.</p>
+
+<h2 id="self-cart_state_changed-cart-newstate"><code>$self-&gt;cart_state_changed( $cart, $newstate )</code></h2>
+
+<p>Hook in the cart for custom behavior once the cart has been changed.</p>
+
+<p>Subclasses may override this for custom behavior: for example, creating a token or certificate once the cart has been paid for.</p>
+
+<h2 id="self-can_be_added-opts"><code>$self-&gt;can_be_added( [ %opts ] )</code></h2>
+
+<p>Returns 1 if this item is allowed to be added to the shopping cart.</p>
+
+<p>Subclasses must override this.</p>
+
+<h2 id="self-can_have_reason-opts"><code>$self-&gt;can_have_reason( [ %opts ] )</code></h2>
+
+<p>Returns 1 if this item is allowed to have a personal note from the sender explaining the reason for the gift.</p>
+
+<p>Subclasses must override this in order to disallow.</p>
+
+<h2 id="self-conflicts-item"><code>$self-&gt;conflicts( $item )</code></h2>
+
+<p>Given another item, see if that item conflicts with this item (i.e., if you can&#39;t have both in your shopping cart at the same time).</p>
+
+<p>Returns undef on &quot;no conflict&quot; else an error message.</p>
+
+<p>Subclasses may override.</p>
+
+<h2 id="self-t_html-opts"><code>$self-&gt;t_html( [ %opts ] )</code></h2>
+
+<p>Render our target as a string.</p>
+
+<p>Subclasses may override.</p>
+
+<h2 id="self-name_text"><code>$self-&gt;name_text</code></h2>
+
+<p>Render the item name as a string, for display, to be used in contexts which don&#39;t allow HTML.</p>
+
+<p>Subclasses must override to provide a more specific and user-friendly display name.</p>
+
+<h2 id="self-name_html"><code>$self-&gt;name_html</code></h2>
+
+<p>Render the item name as a string for display, to be used in contexts which accept HTML.</p>
+
+<p>Subclasses may override to provide a version of the name containing HTML. Uses $self-&gt;name_text by default.</p>
+
+<h2 id="self-note"><code>$self-&gt;note</code></h2>
+
+<p>Render a note to the user about this item.</p>
+
+<p>Subclasses may override to provide a brief note about this item.</p>
+
+<h2 id="self-short_desc"><code>$self-&gt;short_desc</code></h2>
+
+<p>Returns a short string talking about what this is.</p>
+
+<p>Subclasses may override to provide further description.</p>
+
+<h2 id="self-id-id"><code>$self-&gt;id( $id )</code></h2>
+
+<p>This is a getter/setter so it is pulled out.</p>
+
+<h2 id="self-cartid-cartid"><code>$self-&gt;cartid( $cartid )</code></h2>
+
+<p>Gets/sets.</p>
+
+<h2 id="self-t_userid-target_userid"><code>$self-&gt;t_userid( $target_userid )</code></h2>
+
+<p>Gets/sets.</p>
+
+<h2 id="self-from_html"><code>$self-&gt;from_html</code></h2>
+
+<p>Display who this is from, using ljuser_display.</p>
+
+<h2 id="self-from_text"><code>$self-&gt;from_text</code></h2>
+
+<p>Display who this is from, using display_name.</p>
+
+<h2 id="self-paid_cash"><code>$self-&gt;paid_cash</code></h2>
+
+<p>Returns the amount paid for this item in USD. This varies from cart to cart and item to item and is a reflection of the actual amount of cash paid for this item. paid_points may also be non-zero.</p>
+
+<h2 id="self-paid_points"><code>$self-&gt;paid_points</code></h2>
+
+<p>Returns the amount paid in points for this item. This varies just like the paid_cash item, which may also be non-zero for items that a user paid both cash and points for.</p>
+
+<h2 id="self-display_paid"><code>$self-&gt;display_paid</code></h2>
+
+<p>Displays how much cash and/or points this item costs right now.</p>
+
+<h2 id="self-display_paid_cash"><code>$self-&gt;display_paid_cash</code></h2>
+
+<p>Display how much cash this item costs right now.</p>
+
+<h2 id="self-display_paid_points"><code>$self-&gt;display_paid_points</code></h2>
+
+<p>Display how many points this item costs right now.</p>
+
+<h2 id="self-applied"><code>$self-&gt;applied</code></h2>
+
+<p>Returns whether the item which was bought has been already applied</p>
+
+<h2 id="self-cost_cash"><code>$self-&gt;cost_cash</code></h2>
+
+<p>Returns the cost in USD of the item, as configured for this site.</p>
+
+<h2 id="self-cost_points"><code>$self-&gt;cost_points</code></h2>
+
+<p>Returns the cost in points of the item, as configured for this site.</p>
+
+<h2 id="self-t_email"><code>$self-&gt;t_email</code></h2>
+
+<p>Returns the target email this item was sent to.</p>
+
+<h2 id="self-from_userid"><code>$self-&gt;from_userid</code></h2>
+
+<p>Returns the userid of the person who bought this item. May be 0.</p>
+
+<h2 id="self-deliverydate"><code>$self-&gt;deliverydate</code></h2>
+
+<p>Returns the date this item should be delivered, in &quot;yyyy-mm-dd&quot; format</p>
+
+<h2 id="self-anonymous"><code>$self-&gt;anonymous</code></h2>
+
+<p>Returns whether this item should be gifted anonymously, or credited to the sender</p>
+
+<h2 id="self-noremove"><code>$self-&gt;noremove</code></h2>
+
+<p>Returns whether this item may or may not be removed from the cart. May be used by promotions which automatically add a promo item to a user&#39;s cart, to prevent the promo item from being removed</p>
+
+<h2 id="self-from_name"><code>$self-&gt;from_name</code></h2>
+
+<p>Name of the sender in special cases. For example, can be the site name for promotions. Not exposed/settable via the shop.</p>
+
+<h2 id="self-reason"><code>$self-&gt;reason</code></h2>
+
+<p>Optional note from the sender explaining the reason for the gift.</p>
+
+<h2 id="self-cannot_conflict"><code>$self-&gt;cannot_conflict</code></h2>
+
+<p>Returns whether this item may never conflict with any other item. If true, skip checks for conflict.</p>
+
+<p>Subclasses may override.</p>
+
+</div><div class="footer">generated by <a href="http://metacpan.org/module/Pod::ProjectDocs">Pod::ProjectDocs</a></div></body></html>
+

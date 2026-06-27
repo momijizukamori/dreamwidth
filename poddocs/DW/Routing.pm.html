@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="en" xml:lang="en">
+<head>
+<title>DW::Routing &mdash; Dreamwidth</title>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" /><link rel="stylesheet" href="../podstyle.css" type="text/css" />
+</head>
+<body><div class="box">
+  <h1 class="t1">Dreamwidth</h1>
+  <table>
+    <tr>
+      <td class="label">Description</td>
+      <td class="cell">manuals and libraries</td>
+    </tr>
+  </table>
+</div>
+<div class="path">
+  <a href="../index.html">Dreamwidth</a> &gt; Perl Modules &gt;
+  DW::Routing
+</div>
+<div>
+
+</div>
+
+<div class="pod">
+
+
+<ul id="index">
+  <li><a href="#NAME">NAME</a></li>
+  <li><a href="#Page-Call-API">Page Call API</a>
+    <ul>
+      <li><a href="#class-call-r-opts">$class-&gt;call( $r, %opts )</a></li>
+      <li><a href="#class-get_call_opts-r-opts">$class-&gt;get_call_opts( $r, %opts )</a></li>
+      <li><a href="#class-call_hash-class-call_opts">$class-&gt;call_hash( $class, $call_opts )</a></li>
+    </ul>
+  </li>
+  <li><a href="#Registration-API">Registration API</a>
+    <ul>
+      <li><a href="#class-register_static-string-filename-opts">$class-&gt;register_static( $string, $filename, %opts )</a></li>
+      <li><a href="#class-register_string-string-sub-opts">$class-&gt;register_string( $string, $sub, %opts )</a></li>
+      <li><a href="#class-register_redirect-string-dest-opts">$class-&gt;register_redirect( $string, $dest, %opts )</a></li>
+      <li><a href="#class-register_regex-regex-sub-opts">$class-&gt;register_regex( $regex, $sub, %opts )</a></li>
+      <li><a href="#class-register_rpc-name-sub-opts">$class-&gt;register_rpc( $name, $sub, %opts )</a></li>
+      <li><a href="#class-register_api_endpoint-string-sub-opts">$class-&gt;register_api_endpoint( $string, $sub, %opts )</a></li>
+      <li><a href="#class-register_api_rest_endpoint-string-sub-opts">$class-&gt;register_api_rest_endpoint( $string, $sub, %opts )</a></li>
+    </ul>
+  </li>
+  <li><a href="#AUTHOR">AUTHOR</a></li>
+  <li><a href="#COPYRIGHT-AND-LICENSE">COPYRIGHT AND LICENSE</a></li>
+</ul>
+
+<h1 id="NAME">NAME</h1>
+
+<p>DW::Routing - Module to allow calling non-BML controller/views.</p>
+
+<h1 id="Page-Call-API">Page Call API</h1>
+
+<h2 id="class-call-r-opts"><code>$class-&gt;call( $r, %opts )</code></h2>
+
+<p>Valid options:</p>
+
+<dl>
+
+<dt id="uri---explicitly-override-the-uri-item-role---explicitly-define-the-role-item-username---define-the-username-implies-username-role">uri - explicitly override the uri =item role - explicitly define the role =item username - define the username, implies username role</dt>
+<dd>
+
+</dd>
+</dl>
+
+<p>This method should be directly returned by the caller if defined.</p>
+
+<h2 id="class-get_call_opts-r-opts"><code>$class-&gt;get_call_opts( $r, %opts )</code></h2>
+
+<p>Valid options:</p>
+
+<dl>
+
+<dt id="uri---explicitly-override-the-uri-item-role---explicitly-define-the-role-item-username---define-the-username-implies-username-role1">uri - explicitly override the uri =item role - explicitly define the role =item username - define the username, implies username role</dt>
+<dd>
+
+</dd>
+</dl>
+
+<p>Returns a call_opts hash, or undefined.</p>
+
+<h2 id="class-call_hash-class-call_opts"><code>$class-&gt;call_hash( $class, $call_opts )</code></h2>
+
+<p>Calls the raw hash.</p>
+
+<h1 id="Registration-API">Registration API</h1>
+
+<h2 id="class-register_static-string-filename-opts"><code>$class-&gt;register_static( $string, $filename, %opts )</code></h2>
+
+<p>Static page helper.</p>
+
+<dl>
+
+<dt id="string---path">string - path</dt>
+<dd>
+
+</dd>
+<dt id="filename---template-filename">filename - template filename</dt>
+<dd>
+
+</dd>
+<dt id="Opts-see-register_string">Opts ( see register_string )</dt>
+<dd>
+
+</dd>
+</dl>
+
+<h2 id="class-register_string-string-sub-opts"><code>$class-&gt;register_string( $string, $sub, %opts )</code></h2>
+
+<dl>
+
+<dt id="string---path1">string - path</dt>
+<dd>
+
+</dd>
+<dt id="sub---sub">sub - sub</dt>
+<dd>
+
+</dd>
+<dt id="Opts">Opts:</dt>
+<dd>
+
+<dl>
+
+<dt id="args---passed-verbatim-to-sub">args - passed verbatim to sub.</dt>
+<dd>
+
+</dd>
+<dt id="app---Serve-this-in-app-space">app - Serve this in app-space.</dt>
+<dd>
+
+</dd>
+<dt id="user---Serve-this-in-journalspace">user - Serve this in journalspace.</dt>
+<dd>
+
+</dd>
+<dt id="format---What-format-should-be-used-defaults-to-HTML">format - What format should be used, defaults to HTML</dt>
+<dd>
+
+</dd>
+<dt id="formats---An-array-of-possible-formats-or-1-to-allow-everything">formats - An array of possible formats, or 1 to allow everything.</dt>
+<dd>
+
+</dd>
+</dl>
+
+</dd>
+</dl>
+
+<h2 id="class-register_redirect-string-dest-opts"><code>$class-&gt;register_redirect( $string, $dest, %opts )</code></h2>
+
+<p>Redirect helper.</p>
+
+<dl>
+
+<dt id="string---path2">string - path</dt>
+<dd>
+
+</dd>
+<dt id="dest---destination">dest - destination</dt>
+<dd>
+
+</dd>
+<dt id="Opts-see-register_string1">Opts ( see register_string )</dt>
+<dd>
+
+<dl>
+
+<dt id="keep_args---Persist-GET-arguments-over-redirect-same-as-the-keep_args-argument-to-create_url">keep_args - Persist GET arguments over redirect ( same as the keep_args argument to create_url ).</dt>
+<dd>
+
+</dd>
+<dt id="full_uri---A-full-URI-http:-.....-foo-v.s.-foo">full_uri - A full URI ( http://...../foo v.s. /foo )</dt>
+<dd>
+
+</dd>
+</dl>
+
+</dd>
+</dl>
+
+<h2 id="class-register_regex-regex-sub-opts"><code>$class-&gt;register_regex( $regex, $sub, %opts )</code></h2>
+
+<dl>
+
+<dt id="regex">regex</dt>
+<dd>
+
+</dd>
+<dt id="sub---sub1">sub - sub</dt>
+<dd>
+
+</dd>
+<dt id="Opts-see-register_string2">Opts ( see register_string )</dt>
+<dd>
+
+</dd>
+</dl>
+
+<h2 id="class-register_rpc-name-sub-opts"><code>$class-&gt;register_rpc( $name, $sub, %opts )</code></h2>
+
+<p>Register a RPC call</p>
+
+<dl>
+
+<dt id="name---RPC-call-name">name - RPC call name</dt>
+<dd>
+
+</dd>
+<dt id="sub---sub2">sub - sub</dt>
+<dd>
+
+</dd>
+<dt id="Opts-see-register_string3">Opts ( see register_string )</dt>
+<dd>
+
+</dd>
+</dl>
+
+<h2 id="class-register_api_endpoint-string-sub-opts"><code>$class-&gt;register_api_endpoint( $string, $sub, %opts )</code></h2>
+
+<dl>
+
+<dt id="string">string</dt>
+<dd>
+
+</dd>
+<dt id="sub---sub3">sub - sub</dt>
+<dd>
+
+</dd>
+<dt id="opts-see-register_string">opts (see register_string)</dt>
+<dd>
+
+</dd>
+</dl>
+
+<h2 id="class-register_api_rest_endpoint-string-sub-opts"><code>$class-&gt;register_api_rest_endpoint( $string, $sub, %opts )</code></h2>
+
+<dl>
+
+<dt id="string1">string</dt>
+<dd>
+
+</dd>
+<dt id="sub---sub4">sub - sub</dt>
+<dd>
+
+</dd>
+<dt id="opts-see-register_regex">opts (see register_regex)</dt>
+<dd>
+
+</dd>
+</dl>
+
+<h1 id="AUTHOR">AUTHOR</h1>
+
+<dl>
+
+<dt id="Andrea-Nall-anall-andreanall.com">Andrea Nall &lt;anall@andreanall.com&gt;</dt>
+<dd>
+
+</dd>
+<dt id="Mark-Smith-mark-dreamwidth.org">Mark Smith &lt;mark@dreamwidth.org&gt;</dt>
+<dd>
+
+</dd>
+</dl>
+
+<h1 id="COPYRIGHT-AND-LICENSE">COPYRIGHT AND LICENSE</h1>
+
+<p>Copyright (c) 2009-2013 by Dreamwidth Studios, LLC.</p>
+
+<p>This program is free software; you may redistribute it and/or modify it under the same terms as Perl itself. For a copy of the license, please reference &#39;perldoc perlartistic&#39; or &#39;perldoc perlgpl&#39;.</p>
+
+</div><div class="footer">generated by <a href="http://metacpan.org/module/Pod::ProjectDocs">Pod::ProjectDocs</a></div></body></html>
+

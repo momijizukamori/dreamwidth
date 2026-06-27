@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en" xml:lang="en">
+<head>
+<title>DW::EmailPost::Base &mdash; Dreamwidth</title>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" /><link rel="stylesheet" href="../../podstyle.css" type="text/css" />
+</head>
+<body><div class="box">
+  <h1 class="t1">Dreamwidth</h1>
+  <table>
+    <tr>
+      <td class="label">Description</td>
+      <td class="cell">manuals and libraries</td>
+    </tr>
+  </table>
+</div>
+<div class="path">
+  <a href="../../index.html">Dreamwidth</a> &gt; Perl Modules &gt;
+  DW::EmailPost::Base
+</div>
+<div>
+
+</div>
+
+<div class="pod">
+
+
+<ul id="index">
+  <li><a href="#NAME">NAME</a></li>
+  <li><a href="#SYNOPSIS">SYNOPSIS</a>
+    <ul>
+      <li><a href="#class-new-mime_entity">$class-&gt;new( $mime_entity )</a></li>
+    </ul>
+  </li>
+  <li><a href="#CLASS-METHODS">CLASS METHODS</a>
+    <ul>
+      <li><a href="#class-find_destination-mime_entity">$class-&gt;find_destination( $mime_entity )</a></li>
+      <li><a href="#class-should_handle-mime_entity">$class-&gt;should_handle( $mime_entity )</a></li>
+    </ul>
+  </li>
+  <li><a href="#INSTANCE-METHODS">INSTANCE METHODS</a>
+    <ul>
+      <li><a href="#self-process">$self-&gt;process</a></li>
+      <li><a href="#self-parse_destination-auth_string">$self-&gt;parse_destination( $auth_string )</a></li>
+      <li><a href="#self-cleanup_body_final">$self-&gt;cleanup_body_final</a></li>
+      <li><a href="#self-dblog_opts">$self-&gt;dblog_opts</a></li>
+      <li><a href="#self-set_error_address">$self-&gt;set_error_address</a></li>
+    </ul>
+  </li>
+  <li><a href="#GETTERS-SETTERS">GETTERS / SETTERS</a>
+    <ul>
+      <li><a href="#self-destination-destination">$self-&gt;destination( [ $destination ] )</a></li>
+      <li><a href="#self-dequeue">$self-&gt;dequeue</a></li>
+    </ul>
+  </li>
+</ul>
+
+<h1 id="NAME">NAME</h1>
+
+<p>DW::EmailPost::Base - Basic email posting behavior</p>
+
+<h1 id="SYNOPSIS">SYNOPSIS</h1>
+
+<p>This is the basic email posting behavior. Subclasses should implement the following:</p>
+
+<dl>
+
+<dt id="find_destination---given-a-list-of-email-addresses-return-one-youre-interested-in-or-undef-if-none">_find_destination - given a list of email addresses, return one you&#39;re interested in (or undef if none)</dt>
+<dd>
+
+</dd>
+<dt id="parse_destination---given-an-auth-string-taken-from-the-to:-email-header-set-the-user-journal-validated-information">_parse_destination - given an auth string taken from the &quot;to:&quot; email header, set the user/journal/validated information</dt>
+<dd>
+
+</dd>
+<dt id="process---process-the-email.-::Base-does-some-of-the-common-cleanup-for-you.-Its-up-to-you-to-finish-the-job.-Call-self-cleanup_body_final-in-here">_process - process the email. ::Base does some of the common cleanup for you. It&#39;s up to you to finish the job. Call $self-&gt;cleanup_body_final in here</dt>
+<dd>
+
+</dd>
+</dl>
+
+<h2 id="class-new-mime_entity"><code>$class-&gt;new( $mime_entity )</code></h2>
+
+<p>Create an instance of DW::EmailPost::Base</p>
+
+<h1 id="CLASS-METHODS">CLASS METHODS</h1>
+
+<h2 id="class-find_destination-mime_entity"><code>$class-&gt;find_destination( $mime_entity )</code></h2>
+
+<p>Given a mime entity object, return the scalar $user journal (or undef) that this email is destined to post to</p>
+
+<p>Subclasses must implement a _find_destination sub</p>
+
+<h2 id="class-should_handle-mime_entity"><code>$class-&gt;should_handle( $mime_entity )</code></h2>
+
+<p>Given a mime entity object, return 1 if we&#39;re interested in handling this. Return 0 if not.</p>
+
+<h1 id="INSTANCE-METHODS">INSTANCE METHODS</h1>
+
+<h2 id="self-process"><code>$self-&gt;process</code></h2>
+
+<p>Process the email. Returns a status message indicating either success or reason for failure</p>
+
+<p>This base implementation pulls out subject/body, finds the important metadata from the email (such as address, username, etc) and does character decoding.</p>
+
+<p>Subclasses must implement a _process sub for subclass-specific handling</p>
+
+<h2 id="self-parse_destination-auth_string"><code>$self-&gt;parse_destination( $auth_string )</code></h2>
+
+<p>Given an auth string (lefthand side of &quot;to:&quot; header), set authorization options</p>
+
+<p>Must set: u, journal</p>
+
+<p>Subclasses must implement a _parse_destination sub</p>
+
+<h2 id="self-cleanup_body_final"><code>$self-&gt;cleanup_body_final</code></h2>
+
+<p>Final cleanup of the body text: remove signatures, adjust whitespace, etc. Subclass should call this when doing _process</p>
+
+<h2 id="self-dblog_opts"><code>$self-&gt;dblog_opts</code></h2>
+
+<p>Class-specific options</p>
+
+<h2 id="self-set_error_address"><code>$self-&gt;set_error_address</code></h2>
+
+<p>Given a user object and an email address, discover the appropriate email to send any error messages to.</p>
+
+<p>Fallback to raw address if no explicit allowed senders.</p>
+
+<h1 id="GETTERS-SETTERS">GETTERS / SETTERS</h1>
+
+<h2 id="self-destination-destination"><code>$self-&gt;destination( [ $destination ] )</code></h2>
+
+<p>Get/set the destination this was sent to (left part of the To:)</p>
+
+<h2 id="self-dequeue"><code>$self-&gt;dequeue</code></h2>
+
+<p>Returns whether this email post should be dequeued (1) or retried (0).</p>
+
+</div><div class="footer">generated by <a href="http://metacpan.org/module/Pod::ProjectDocs">Pod::ProjectDocs</a></div></body></html>
+
